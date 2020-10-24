@@ -50,15 +50,22 @@ def readConfig():
 
             #sets MAL AuthToken
             lineCont = config.readline()
-            lineCont = lineCont.replace("MAL AuthToken: ", "")
+            lineCont = lineCont.replace("ANILIST AuthToken: ", "")
             lineCont = lineCont.replace("\n", "")
-            AuthToken = lineCont
+            AuthToken = lineCont 
 
             #sets ANILIST AccessCode
             lineCont = config.readline()
             lineCont = lineCont.replace("ANILIST AccessCode: ", "")
             lineCont = lineCont.replace("\n", "")
             AccessCode = lineCont
+            AniListAccess.updateAccessToken(AccessCode)
+             
+            #sets User ID
+            lineCont = config.readline()
+            lineCont = lineCont.replace("ANILIST UserID: ", "")
+            lineCont = lineCont.replace("\n", "")
+            AniListAccess.setUserID()
 
 
             pass
@@ -81,7 +88,10 @@ def readConfig():
             AccessCode = AniListAccess.getAniListAccessToken(AuthToken)
             config.write(AccessCode)
             
-
+            #get UserID
+            config.write("ANILIST UserID: ")
+            UserID = AniListAccess.findUserID()
+            config.write(UserID)
 
             config.seek(0)
             print(config.readlines())
