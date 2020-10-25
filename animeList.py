@@ -7,13 +7,14 @@ from AniListAccess import *
 animeListWatching = []
 animeListPTW = []
 animeListFinished = []
+animeListAll = []
 
 
 class animeList(object):
 
     #gets animeList from API
     def updateAniListAnimeList(status):
-        global animeListWatching, animeListPTW, animeListFinished
+        global animeListWatching, animeListPTW, animeListFinished, animeListAll
         UserID = AniListAccess.getUserID()
 
         #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
@@ -60,20 +61,20 @@ class animeList(object):
     
         #compiles the List Data
         animeListData = json.loads(animeListDataRequest.content)
-        print(animeListData)
 
         #creates empty animeLists        
         animeListWatching = []
         animeListPTW = []
         animeListFinished = []
+        animeListAll = []
 
         #creats variables to use for loop
         totalPages = animeListData["data"]["Page"]["pageInfo"]["lastPage"]
         print(totalPages)
         index  = 0
 
-        
-        for page in range(2, totalPages):
+        #iterates through each page (each page contains 50 anime which is the max amount that can be pulled from the API at once)
+        for page in range(2, totalPages + 2):
             #adds each anime to corresponding list based on status
             for x in animeListData["data"]["Page"]["mediaList"]:
                 animeStatus = animeListData["data"]["Page"]["mediaList"][index]["status"]
@@ -81,12 +82,17 @@ class animeList(object):
 
                 if(animeStatus == "PLANNING"):
                     animeListPTW.append(animeInfo)
+                    
 
                 elif(animeStatus == "CURRENT"):
                     animeListWatching.append(animeInfo)
 
                 elif(animeStatus == "COMPLETED"):
                     animeListFinished.append(animeInfo)
+                
+                #adds anime to the big list with every anime
+                if(status == "all"):
+                    animeListAll.append(animeInfo)
                 index  += 1
             
             #resets index for next iteration of loop
@@ -101,19 +107,50 @@ class animeList(object):
             #compiles data
             animeListData = json.loads(animeListDataRequest.content)
             
-        #print(animeListPTW)
        
-    pass
+        pass
+    
+    #returns anime list with all information based on status
+    def getAnimeList(status):
+
+        #sets correct list based on status
+        animeListStat = []
+        if (status == "all"):
+            animeListStat = animeListAll
+        elif status == "PLANNING":
+            animeListStat = animeListPTW
+        elif status == "CURRENT":
+            animeListStat = animeListWatching
+        elif status == "COMPLETED":
+            animeListStat = animeListFinished
+        
+
+        return animeListStat
+
+        pass
+    #returns a list containing only the names of the anime
+
+    def getTitleList(status):
+        
+        #gets correct list
+        animeListStat = []
+        animeListStat = animeList.getAnimeList(status)
+
+        #sets variables for loop
+        titleList = []
+        index = 0
+
+        #adds names of anime to title list
+        for x in animeListStat:
+            animeTitle = animeListStat[index]["title"]["romaji"]
+            titleList.append(animeTitle)
+            index += 1
+        
+        return titleList    
+        
     
     
-    
-    
-    
-    
-    
-    
-    
-    pass
+        pass
 
 
 

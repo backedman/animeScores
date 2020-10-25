@@ -5,7 +5,7 @@
     <ProjectGuid>b36de369-43ff-4fdb-9cdf-ceba95da75dc</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>animeScores.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,8 +22,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="animeScores.py" />
+    <Compile Include="main.py" />
     <Compile Include="AniListAccess.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="config.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

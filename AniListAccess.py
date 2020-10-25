@@ -4,6 +4,13 @@ import json
 import webbrowser
 
 
+import pathlib
+import requests
+import json
+import webbrowser
+
+
+
 #sets global variables
 CLIENT_ID = "4226"
 CLIENT_SECRET = "7wEknYuigwNkGaaXQts4MRmxrMUO4e6YRqry0Ary"
