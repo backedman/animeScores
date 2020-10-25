@@ -17,11 +17,12 @@ ACCESS_TOKEN = ""
 ACCESS_HEADER = ""
 USER_ID = ""
 
+
 """accesses and authenticates user using AniList API"""
-class AniListAccess(object):
+class AniListAccess():
     
     #gets Auth token from user
-    def getAniListAuthToken():
+    def findAniListAuthToken():
         global CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, RESPONSE_TYPE, AUTHORIZE_URL, AUTH_TOKEN, ACCESS_URL
         
         newAUTHORIZE_URL = AUTHORIZE_URL + "client_id=" + CLIENT_ID + "&redirect_uri=" + REDIRECT_URI + "&response_type=" + RESPONSE_TYPE
@@ -29,9 +30,10 @@ class AniListAccess(object):
         authToken = input("")
 
         return authToken
+        
 
     #uses AuthToken to get AccessToken
-    def getAniListAccessToken(AuthToken):
+    def findAniListAccessToken(AuthToken):
         
         global CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, RESPONSE_TYPE, AUTHORIZE_URL, AUTH_TOKEN, ACCESS_URL, ACCESS_TOKEN
 
@@ -49,8 +51,6 @@ class AniListAccess(object):
                 'Accept' : 'application/json'
                 }
             
-            
-
 
         #gets accessToken
         accessToken = requests.post(url = ACCESS_URL, json = form_params,  headers = header)
@@ -59,28 +59,10 @@ class AniListAccess(object):
         ACCESS_TOKEN = accessToken
         AniListAccess.setAccHead()
                 
-    pass
+        pass
 
-     #allows setting ACCESS_TOKEN from a method outside of the class
-    def updateAccessToken(accessToken):
-        global ACCESS_TOKEN
-        ACCESS_TOKEN = accessToken
-        AniListAccess.setAccHead()
-    pass
-
-    #sets header which sends user access code to the servers
-    def setAccHead():
-        global ACCESS_TOKEN, ACCESS_HEADER
-
-        ACCESS_HEADER = {
-            'Authorization' : 'Bearer ' + ACCESS_TOKEN,
-            'Content-Type' : 'application/json',
-            'Accept' : 'application/json'
-            }
-    pass
-    
     #finds user ID from server using Access Code
-    def getUserID():
+    def findUserID():
         global QUERY_URL, ACCESS_HEADER, USER_ID
         #sets query parameters to request user data
         query = '''
@@ -96,22 +78,87 @@ class AniListAccess(object):
             }
 
         #get user data from server
-        userData = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
+        userData = getData(query, variables)
         
         #gets the user data
         userID = json.loads(userData.content)
         USER_ID = userID["data"]
-    pass
+        pass
+    
+    def getData(query, variables):
+        data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
+        return data
 
-    def setUSER_ID(userID):
+
+
+
+#
+#                                                                            BELOW ARE THE SET METHODS
+#
+
+
+
+    #allows setting Auth Token externally
+    def setAuthToken(AuthToken):
+        global AUTH_TOKEN
+        AUTH_TOKEN = AuthToken
+        pass
+
+    #allows setting ACCESS_TOKEN from a method outside of the class
+    def setAccessToken(accessToken):
+        global ACCESS_TOKEN
+        ACCESS_TOKEN = accessToken
+        AniListAccess.setAccHead()
+        pass
+
+    #sets header which sends user access code to the servers
+    def setAccHead():
+        global ACCESS_TOKEN, ACCESS_HEADER
+
+        ACCESS_HEADER = {
+            'Authorization' : 'Bearer ' + ACCESS_TOKEN,
+            'Content-Type' : 'application/json',
+            'Accept' : 'application/json'
+            }
+        pass
+    
+    #lets external class set USER_ID
+    def setUserID(userID):
         global USER_ID
         USER_ID = userID
-    pass
+        pass
 
-    def getAniListAnimeList():
-        global USER_ID
 
-    pass
+
+#
+#                                                                             BELOW ARE THE GET METHODS
+#
+
+
+
+    def getAniListAuthToken():
+        return AUTH_TOKEN
+        
+    def getAniListAccessToken():
+        return ACCESS_TOKEN
+        
+    def getAniListAccHeader():
+        return ACCESS_HEADER
+
+    def getAuthURL():
+        return AUTHORIZE_URL
+    
+    def getAccURL():
+        return ACCESS_URL
+
+    def getQueryURL():
+        return QUERY_URL
+
+    def getUserID():
+        return USER_ID
+        
+
+    
 
     
         

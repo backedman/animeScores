@@ -4,6 +4,7 @@ import requests
 import json
 import webbrowser
 from AniListAccess import *
+from animeList import *
 
 def main():
     #initialize variables
@@ -11,13 +12,17 @@ def main():
     baseSpeed = 1.0
     AuthToken = ""
     AccessCode = ""
+    status = "all"
 
 
 
 
-
-    #gets information from config
+    #updates or creates information from config
     readConfig()
+
+    #gets the most up to date user's anime list from website
+    animeList.updateAniListAnimeList(status)
+
 
 #reads config for general info if it exists. If config does not exist, then one is created
 def readConfig():
@@ -48,24 +53,26 @@ def readConfig():
             else:
                 baseSpeed = 1.0
 
-            #sets MAL AuthToken
+            #sets ANILIST AuthToken
             lineCont = config.readline()
             lineCont = lineCont.replace("ANILIST AuthToken: ", "")
             lineCont = lineCont.replace("\n", "")
             AuthToken = lineCont 
+            AniListAccess.setAuthToken(AuthToken)
 
             #sets ANILIST AccessCode
             lineCont = config.readline()
             lineCont = lineCont.replace("ANILIST AccessCode: ", "")
             lineCont = lineCont.replace("\n", "")
             AccessCode = lineCont
-            AniListAccess.updateAccessToken(AccessCode)
+            AniListAccess.setAccessToken(AccessCode)
              
             #sets User ID
             lineCont = config.readline()
             lineCont = lineCont.replace("ANILIST UserID: ", "")
             lineCont = lineCont.replace("\n", "")
-            AniListAccess.setUserID()
+            userID = lineCont
+            AniListAccess.setUserID(userID)
 
 
             pass
@@ -80,12 +87,12 @@ def readConfig():
 
             #get AniList Auth token to get permission to access user account
             config.write("ANILIST AuthToken: ")
-            AuthToken = AniListAccess.getAniListAuthToken()
+            AuthToken = AniListAccess.findAniListAuthToken()
             config.write(AuthToken)
 
             #get AniList Access Token to manage user account
             config.write("ANILIST AccessCode: ")
-            AccessCode = AniListAccess.getAniListAccessToken(AuthToken)
+            AccessCode = AniListAccess.findAniListAccessToken(AuthToken)
             config.write(AccessCode)
             
             #get UserID
