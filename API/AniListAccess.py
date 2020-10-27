@@ -86,9 +86,7 @@ class AniListAccess():
         USER_ID = userID["data"]
         pass
     
-    def getData(query, variables):
-        data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
-        return data
+    
 
 
 
@@ -135,7 +133,9 @@ class AniListAccess():
 #                                                                             BELOW ARE THE GET METHODS
 #
 
-
+    def getData(query, variables):
+        data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
+        return data
 
     def getAniListAuthToken():
         return AUTH_TOKEN

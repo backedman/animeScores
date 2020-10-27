@@ -2,7 +2,8 @@ import pathlib
 import requests
 import json
 import webbrowser
-from AniListAccess import *
+import time
+from API.AniListAccess import *
 
 animeListWatching = []
 animeListPTW = []
@@ -12,8 +13,9 @@ animeListAll = []
 
 class animeList(object):
 
-    #gets animeList from API
     def updateAniListAnimeList(status):
+        '''gets animeList from API and updates the anime list'''
+        
         global animeListWatching, animeListPTW, animeListCompleted, animeListAll
         UserID = AniListAccess.getUserID()
 
@@ -31,10 +33,6 @@ class animeList(object):
   	                    title{
                             romaji
                         }
-                        tags{
-                            name
-                        }
-                        duration
   	                }
                  }
               }
@@ -42,7 +40,7 @@ class animeList(object):
         '''
         
         #sets correct information for the query. If all anime in the list are wanted, then status is not set
-
+        dur = 0
         if status == "all":
            variables = {
            'userID' : UserID,
@@ -55,7 +53,7 @@ class animeList(object):
            'status' : status,
            'page' : 1
            }
-
+ 
         #requests data from API        
         animeListDataRequest = AniListAccess.getData(query, variables)
 
@@ -96,7 +94,7 @@ class animeList(object):
                 elif(animeStatus == "COMPLETED"):
                     animeListCompleted.append(animeInfo)
                 
-                #adds anime to the big list with every anime
+                #adds anime to the big list with every anime if parameter is given
                 if(status == "all"):
                     animeListAll.append(animeInfo)
                 index  += 1
@@ -112,12 +110,12 @@ class animeList(object):
 
             #compiles data
             animeListData = json.loads(animeListDataRequest.content)
-            
+
         #returns anime list asked for
         return animeList.getAnimeList(status)
     
-    #returns anime list with all information based on status
     def getAnimeList(status):
+        '''returns anime list with all information based on status'''
 
         #sets correct list based on status
         animeListStat = []
@@ -137,9 +135,9 @@ class animeList(object):
         return animeListStat
 
         pass
-    #returns a list containing only the names of the anime
 
     def getTitleList(status):
+        '''returns a list containing only the names of the anime'''
         
         #gets correct list
         animeListStat = []
@@ -160,6 +158,43 @@ class animeList(object):
     
     
         pass
+
+    #gets the episode info
+
+    
+    
+    def getAnimeDetailed(animeName):
+        """gets detailed list of anime"""
+
+        #sets query and variables to get anime from API
+        query = '''
+            query($animeName : String) {
+                Media(search : $animeName)
+                {
+                    title{
+                        romaji
+                    }
+                    tags{
+                        name
+                    }
+                    episodes
+                    genres
+                    duration
+                    averageScore
+                    meanScore
+                    favourites
+                }
+            }
+            '''
+        variables = {
+            'animeName' : animeName
+        }
+
+        #returns json data of anime
+        animeData = (json.loads((AniListAccess.getData(query, variables)).content))['data']['Media']
+        print(animeData)
+        return animeData
+    
 
 
 

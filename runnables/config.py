@@ -2,8 +2,8 @@ import pathlib
 import requests
 import json
 import webbrowser
-from animeList import *
-from AniListAccess import *
+from API.animeList import *
+from API.AniListAccess import *
 
 
 

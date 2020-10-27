@@ -4,9 +4,13 @@ import requests
 import json
 import webbrowser
 import os
-from AniListAccess import *
-from animeList import *
+from API.AniListAccess import *
+from API.animeList import *
 from config import *
+from anime.animeFile import *
+from Algorithms.binarySearch import *
+
+
 
 def main():
     #initialize variables
@@ -26,8 +30,9 @@ def main():
 
 
     #gets the most up to date user's anime list from website
-    animeList.updateAniListAnimeList("PLANNING")
+    aniList = animeList.updateAniListAnimeList("PLANNING")
     titleList = animeList.getTitleList("PLANNING")
+
 
     #set current page number and maximum page number (each page has 9)
     maxPage = int((len(titleList)/9 + 1.5))
@@ -98,25 +103,34 @@ def main():
 
         #chooses corresponding animeName if user chooses a number between 1 and 9
         elif(int(ans) < 10 and int(ans) > 0):
-            animeName = titleList[int(ans) - 1 + (page - 1) * 9]
+            animeName = str(titleList[int(ans) - 1 + (page - 1) * 9])
             
+            print("here")
+            aniShow = animeFile(animeName, status)
             #checks if file for anime exists. If it doesn't, then a new one is created
             animePath = getPath(status) + animeName + ".txt"
             animeExists = pathlib.Path(animePath)
-            if not animeExists:
-                open(animePath, "w")
 
-            #reads and writes to file
-            with open(animePath, "w+") as anime:
-                anime.write("test")
+    pass
+            
+
+
             
             
 
-def getPath(status):
-    Path = os.getcwd() + "/Data/" + status + "/"
+
+
+
+def getPath(stat):
+    Path = os.getcwd() + "/Data/" + stat + "/"
     os.makedirs(Path, exist_ok = True)
 
     return Path
+    pass
+pass
+
+if __name__ == '__main__':
+    main()
 
 
 
@@ -126,7 +140,3 @@ def getPath(status):
 
 
 
-
-
-
-main()
