@@ -8,8 +8,8 @@ class Converter(object):
     
     def converter():
         Path = "C:/Users/Mohit Bogineni/Desktop/animescores/Data/"
-        status = "Completed"
-        nStatus = "COMPLETED"
+        status = "Watching"
+        nStatus = "CURRENT"
 
         mPath = Path + status
         files = os.listdir(mPath)
@@ -55,7 +55,7 @@ class Converter(object):
             
             avgScore = float(Info[6].replace("Average Score: ",""))
 
-            realScore = float(Info[7].replace("Real Score: ", ""))
+            #realScore = float(Info[7].replace("Real Score: ", ""))
 
             print("here3")
 
@@ -64,7 +64,7 @@ class Converter(object):
 
             print(anime)
             Data['Info'] = {'Anime Name' : animeName,
-                        'Status' : "COMPLETED",
+                        'Status' : "CURRENT",
                         'Episode Count' : {
                                 'Current' : epCurrent,
                                 'Total' : aniData['episodes']
@@ -74,7 +74,7 @@ class Converter(object):
                                 'Average Score' : avgScore,
                                 'Scaled Score' : scaledScore,
                                 'NN Score' : 0,
-                                'Real Score' : realScore,
+                                'Real Score' : 0,
                             },
                         'Impact Rating' : impactRating,
                         'Episode Length' : aniData['duration']
