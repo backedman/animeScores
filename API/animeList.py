@@ -192,9 +192,29 @@ class animeList(object):
 
         #returns json data of anime
         animeData = (json.loads((AniListAccess.getData(query, variables)).content))['data']['Media']
-        print(animeData)
         return animeData
-    
+
+    def getAnimeSearch(animeName):
+        '''gets first search result of anime search'''
+        query = '''
+            query($animeName : String) {
+                Media(search : $animeName)
+                {
+                    title{
+                        romaji
+                    }
+                    episodes                  
+                    duration
+                }
+            }
+            '''
+        variables = {
+            'animeName' : animeName
+        }
+        
+         #returns json data of anime
+        animeData = (json.loads((AniListAccess.getData(query, variables)).content))['data']['Media']
+        return animeData
 
 
 

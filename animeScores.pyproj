@@ -25,6 +25,9 @@
     <Compile Include="Algorithms\binarySearch.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Algorithms\numManip.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Algorithms\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -36,6 +39,12 @@
     </Compile>
     <Compile Include="API\animeList.py" />
     <Compile Include="API\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Converter\getData.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Converter\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="runnables\main.py" />
@@ -53,6 +62,7 @@
     <Folder Include="Algorithms\" />
     <Folder Include="anime\" />
     <Folder Include="API\" />
+    <Folder Include="Converter\" />
     <Folder Include="runnables\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

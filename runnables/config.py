@@ -31,7 +31,7 @@ class config(object):
 
                 #sets speedChangeable
                 lineCont = config.readline()
-                if(lineCont.find('True')):
+                if(lineCont.find('True') > -1):
                     speedChangeable = True
                 else:
                     speedChangeable = False
@@ -106,6 +106,7 @@ class config(object):
 
 
     def getSpeedChangeable():
+        print(speedChangeable)
         return speedChangeable
 
     def getBaseSpeed():

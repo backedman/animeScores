@@ -1,6 +1,6 @@
 import math
 
-class binarySearch(object):
+class Search(object):
     """binary search of an array"""
 
     def bSearchAnimeList(list, target):

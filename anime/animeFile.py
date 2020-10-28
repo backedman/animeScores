@@ -1,9 +1,11 @@
 import pathlib
 import json
 import os
+import math
 from runnables.main import *
 from runnables.config import *
 from API.animeList import *
+from Algorithms.numManip import *
 
 class animeFile:
 
@@ -12,13 +14,14 @@ class animeFile:
     status = ""
     animeName = ""
     Path = ""
-    episodeCurrent = 0
-    episodeTotal = 0
+    epCurrent = 0
+    epTotal = 0
     baseSpeed = 1.0
     avgScore = 0
     scaledScore = 0
     nnScore = 0
     realScore = 0
+    impactScore = -1
     speedChangeable = False
     
 
@@ -28,43 +31,40 @@ class animeFile:
     def __init__(self, animeName, status):
         Path = getPath(status) + animeName + ".txt"
         
-        print("here2")
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
             #fixes errors from specific case
         if aniData['episodes'] == None:
            aniData['episodes'] = 0
         
-        print("here3")
         #creates list to store user anime data
-        Data = json.loads(['Info', 'Episodes'])
-        
+        Data = {'Info' : {}, 'Episodes' : {}}
+
         #make list with base data if file does not exist
         exists = os.path.exists(Path)
         
-        print("here4")
         if not exists:
-            Data['Info'].append({'Anime Name' : animeName,
+            Data['Info'] = {'Anime Name' : animeName,
                         'Status' : status,
                         'Episode Count' : {
-                                'Current' : 0,
+                                'Current' : 1,
                                 'Total' : aniData["episodes"]
                             },
                         'Base Speed' : config.getBaseSpeed(),
                         'Score' : {
-                                'Average Score ' : 0,
-                                'Scaled Score ' : 0,
-                                'NN Score ' : 0,
-                                'Real Score ' : 0,
+                                'Average Score' : 0,
+                                'Scaled Score' : 0,
+                                'NN Score' : 0,
+                                'Real Score' : 0,
                             },
-                        
+                        'Impact Rating' : -1,
                         'Episode Length' : aniData['duration']
-                        })
-            print("here5")
-
+                        }
+            Data['Episodes'] = list()
             with open(Path, "w+") as json_file:
                     json.dump(Data, json_file, indent = 4, ensure_ascii = True)
-        
+                    json_file.seek(0)
+                    Data = json.load(json_file)
         #make list using data from file if file exists
         else:
 
@@ -73,40 +73,35 @@ class animeFile:
                 Data = json.load(json_file)
         
         #gets information from json and stores it to instance
-        print("here6")
         self.Data = Data
         self.aniData = aniData
         self.status = status
         self.animeName = animeName
         self.Path = Path
-        print("here7")
-        self.episodeCurrent = Data['Info']['Episode Count']['Current']
-        print("here8")
-        self.episodeTotal = Data['Info']['Episode Count']['Total']
+        self.epCurrent = Data['Info']['Episode Count']['Current']
+        self.epTotal = Data['Info']['Episode Count']['Total']
         self.baseSpeed = Data['Info']['Base Speed']
         self.avgScore = Data['Info']['Score']['Average Score']
         self.scaledScore = Data['Info']['Score']['Scaled Score']
-        self.nnScore = Data['Info']['Score']['nnScore']
+        self.nnScore = Data['Info']['Score']['NN Score']
         self.realScore = Data['Info']['Score']['Real Score']
+        self.impactScore = Data['Info']['Impact Rating']
         self.speedChangeable = config.getSpeedChangeable()
-        print("here8")
 
         #Shows prompt for user
-        userPrompt()
-        print("here10")
+        self.userPrompt()
 
         #writes to file
-        with open(Path, "w+") as json_file:
-            json.dump(Data, json_file, indent = 4, ensure_ascii = True)
-        pass
+        self.writeToFile()
+        
 
-    def userPrompt():
+    def userPrompt(self):
         '''prompts user with options on what to do with anime'''
         
         #initializes variables to use in method
         animeName = self.animeName
         print("here9")
-        while(true):
+        while(True):
             #shows user options
             print("                 " + animeName)
             print("1. Record Watching Stats")
@@ -117,43 +112,43 @@ class animeFile:
             ans = input()
 
             #takes user to respective methods
-            if(int(ans) == 1):
-                recordStats()
+            if(ans == "1"):
+                self.recordStats()
             
-            elif(int(ans) == 2):
-                getStats()
+            elif(ans == "2"):
+                self.printStats()
 
-            elif(int(ans) == 3):
-                Settings()
+            elif(ans == "3"):
+                self.Settings()
 
             elif(ans == "x" or ans == "X"):
                 break;
         pass
 
-    def recordStats():
+    def recordStats(self):
         '''gets and records per episode score and speed from user'''
         
         #initializes variables to use in method
-        episodeCurrent = self.episodeCurrent
-        episodeTotal = self.episodeTotal
+        epCurrent = self.epCurrent
+        epTotal = self.epTotal
         speedChangeable = self.speedChangeable
         baseSpeed = self.baseSpeed
         animeName = self.animeName
         Data = self.Data
 
-        while(true):
+        while(True):
             #asks episode score from user
-            print("How do you rate Episode " + episodeCurrent + "of " + animeName + "?")
+            print("How do you rate Episode " + str(epCurrent) + " of " + str(animeName) + "?")
 
             epScore = input()
                 #retakes and informs user if input is not valid
-            while(not epScore.isdigit()):
+            while(not epScore.isdigit() and not (epScore == "x" or epScore == "X")):
                 print("That is not a valid input. Please enter a number. To exit the program enter -1")
                 epScore = input()
 
                 #stops taking in episode scores if input is -1
-            if(epScore == -1):
-                break;
+            if(epScore == "x" or epScore == "X"):
+                break
 
             #if config allows, ask user for speed of show
             if(speedChangeable):
@@ -168,26 +163,125 @@ class animeFile:
             else:
                 epSpeed = baseSpeed
 
-            #updates episode count
-            episodeCurrent += 1
-            if(episodeTotal > episodeCurrent):
-                episodeTotal = episodeCurrent
+            
 
             #adds score and speed to data
-            Data['Episodes'].append({
-                        {'Episode ' + epCurrent},
-                        {'Score: ' + epScore},
-                        {'Speed: ' + epSpeed}
-            })
+            dataToAppend = {('Episode ' + str(epCurrent)) : {'Score' : str(epScore) , 'Speed' : str(epSpeed)}}
+            Data['Episodes'].append(dataToAppend)
+
+            #updates episode count
+            epCurrent += 1
+            if(epTotal < epCurrent):
+                epTotal = epCurrent
 
             #updates data list in instance
             self.Data = Data
         
-        #updates values in instance
-        self.episodeCurrent = episodeCurrent
-        self.episodeTotal = episodeTotal
+            #updates values in instance
+            self.epCurrent = epCurrent
+            self.epTotal = epTotal
+
+            self.writeToFile()
+
 
         pass
+
+    def printStats(self):
+        print("Average Score: " + str(self.calcAvgScore()))
+        print("Scaled Score: " + str(self.calcScaledScore()))
+        pass
+
+    def calcScaledScore(self):
+        '''calculates the scaled score'''
+
+        #initializes variables
+        total = 0
+        Data = self.Data
+        epCurrent = self.epCurrent
+        impactScore = self.impactScore
+
+        #iterates through each episode
+        for x in range (1, epCurrent):
+
+            #get episode rating and speed
+            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
+            speed = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Speed'])
+            difference = speed - baseSpeed
+
+            #scales the score based on speed deviation from base speed
+            if(difference >= 0 and difference <= 0.25):
+                total += epRating - 2 * difference
+
+            elif (difference > 0.25 and difference <= 1):
+                total += epRating - (math.log(difference, 4) + 2)
+
+            elif(difference > 1 and difference <= 2):
+                total += epRating - (difference + 1)
+
+            elif(difference > 2):
+                total += epRating - (difference/2 + 2)
+
+            elif(difference < 0 and difference >= -0.25):
+                total += (epRating - 2 * difference)
+
+            elif(difference < -0.25 and difference >= -1):
+                total += epRating + (math.log(math.abs(difference), 4) + 2)
+
+        score = total/epCurrent
+
+        #shifts score based on impact rating
+        if(impactScore != -1):
+            score += (impactScore - 5)/5 * 12/epCurrent
+
+        #rounds score
+        score = numManip.round(score, 2)
+        
+        #saves score
+        self.scaledScore = score
+
+        return score
+                
+    def calcAvgScore(self):
+
+        #initializes variables
+        epCurrent = self.epCurrent
+        Data = self.Data
+        total = 0
+
+        #iterates through episodes
+        
+        for x in range(1, epCurrent):
+            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
+            total += epRating
+
+        #averages score
+        score = total/epCurrent
+            
+        #saves score
+        self.avgScore = score
+
+        return score
+
+
+    def writeToFile(self):
+        '''writes data to file'''
+
+        #updates Data values
+        Path = self.Path
+        Data = self.Data
+        Data['Info']['Episode Count']['Current'] = self.epCurrent
+        Data['Info']['Episode Count']['Total'] = self.epTotal
+        Data['Info']['Base Speed'] = self.baseSpeed
+        Data['Info']['Score']['Average Score'] = self.avgScore
+        Data['Info']['Score']['Scaled Score'] = self.scaledScore
+        Data['Info']['Score']['NN Score'] = self.nnScore
+        Data['Info']['Score']['Real Score'] = self.realScore
+
+        #writes to file
+        with open(Path, "w+") as json_file:
+            json.dump(Data, json_file, indent = 4, ensure_ascii = True)
+        pass
+
 pass
     
 
