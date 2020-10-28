@@ -8,7 +8,6 @@ from API.AniListAccess import *
 from API.animeList import *
 from config import *
 from anime.animeFile import *
-from Converter.Converter import *
 from Algorithms.binarySearch import *
 
 
@@ -130,8 +129,8 @@ def getPath(stat):
     pass
 pass
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    main()
 
 
 
