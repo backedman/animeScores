@@ -11,3 +11,17 @@ class numManip(object):
         roundedNum = int((num * digitMulti + 0.5))/(digitMulti)
 
         return roundedNum
+
+    def makeSafe(name):
+        name = name.replace("?", " ")
+        name = name.replace("!", " ")
+        name = name.replace("<", " ")
+        name = name.replace(">", " ")
+        name = name.replace("\"", " ")
+        name = name.replace("/", " ")
+        name = name.replace("\\", " ")
+        name = name.replace("|", " ")
+        name = name.replace("*", " ")
+        name = name.replace(":", " ")
+
+        return name

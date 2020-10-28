@@ -9,26 +9,33 @@ class getData(object):
             
             animeInfo = []
             epData = []
-            print(animeData)
             
             indCent = animeData.index("-------------------------\n")
             for x in range(0, len(animeData)):
                 animeData[x] = animeData[x].replace("\n", "")
                 if(x < indCent):
                     animeInfo.append(animeData[x])
-                elif(x > indCent):
+                elif(x > indCent and animeData[x] != ""):
                     epData.append(animeData[x])
+            Data = [animeInfo, epData]
+            return Data
             
-            splitScore(epData)
         pass
 
     def splitScore(epData):
         epScore = []
         epSpeed = []
-        epInfo = []
 
-        for x in range(0, epData):
+
+        for x in range(0, len(epData)):
+            print(x)
             epInfo = epData[x].split("                   ")
+            epInfo[0] = epInfo[0].replace("Episode " + str(x + 1) + ": ", "")
             epScore.append(epInfo[0])
-            epSpeed.append(epInfo[0]
+            epInfo[1] = epInfo[1].replace("Speed: ", "")
+            epSpeed.append(epInfo[1])
+
+        epData = [epScore, epSpeed]
+        
+        return epData
 
