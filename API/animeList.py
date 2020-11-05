@@ -54,11 +54,8 @@ class animeList(object):
            'page' : 1
            }
  
-        #requests data from API        
-        animeListDataRequest = AniListAccess.getData(query, variables)
-
-        #compiles the List Data
-        animeListData = json.loads(animeListDataRequest.content)
+        #requests data from API into a list 
+        animeListData = AniListAccess.getData(query, variables)
 
         #creates empty animeLists based on status
         if(status == "all"):
@@ -81,6 +78,7 @@ class animeList(object):
         for page in range(2, totalPages + 2):
             #adds each anime to corresponding list based on status
             for x in animeListData["data"]["Page"]["mediaList"]:
+
                 animeStatus = animeListData["data"]["Page"]["mediaList"][index]["status"]
                 animeInfo = animeListData["data"]["Page"]["mediaList"][index]["media"]
 
@@ -104,16 +102,17 @@ class animeList(object):
 
             #gets next page of results from query from website
             variables['page'] = page
-            animeListDataRequest = AniListAccess.getData(query, variables)
-                #prints out amount of times data can be pulled from website in the minute
-            print(animeListDataRequest.headers["X-RateLimit-Remaining"])
-
-            #compiles data
-            animeListData = json.loads(animeListDataRequest.content)
+            animeListData = AniListAccess.getData(query, variables)
 
         #returns anime list asked for
         return animeList.getAnimeList(status)
     
+    def updateFiles():
+        statusTypes = ['PLANNING', 'CURRENT', 'COMPLETED']
+        for status in statusTypes: #iterates through different statuses
+            
+
+
     def getAnimeList(status):
         '''returns anime list with all information based on status'''
 
@@ -153,13 +152,13 @@ class animeList(object):
             animeTitle = animeListStat[index]["title"]["romaji"]
             titleList.append(animeTitle)
             index += 1
+        titleList.sort()
         return titleList    
         
     
     
         pass
 
-    #gets the episode info
 
     
     
@@ -191,7 +190,7 @@ class animeList(object):
         }
 
         #returns json data of anime
-        animeData = (json.loads((AniListAccess.getData(query, variables)).content))['data']['Media']
+        animeData = (AniListAccess.getData(query, variables))['data']['Media']
         return animeData
 
     def getAnimeSearch(animeName):
@@ -212,10 +211,35 @@ class animeList(object):
             'animeName' : animeName
         }
         
-         #returns json data of anime
-        animeData = (json.loads((AniListAccess.getData(query, variables)).content))['data']['Media']
+         #returns data of anime
+        animeData = (AniListAccess.getData(query, variables))['data']['Media']
         return animeData
 
+    def getAnimeSearchList(animeName, numResults):
+        '''gets multiple search results'''
+        
+        query = '''
+            query ($animeName: String, $perPage: Int)  {
+            Page(perPage : $perPage){
+  	                media(search : $animeName)
+                    {
+                        title{
+                            romaji
+                        }
+                        episodes                  
+                        duration
+                    }
+                }
+            }
+        '''
+        variables = {
+                'animeName' : animeName,
+                'perPage' : numResults
+            }
+
+        #returns anime results list
+        animeData = (AniListAccess.getData(query,variables))['data']['Page']
+        return animeData
 
 
 

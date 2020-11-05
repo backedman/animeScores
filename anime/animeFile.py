@@ -48,7 +48,6 @@ class animeFile:
                         'Status' : status,
                         'Episode Count' : {
                                 'Current' : 1,
-                                'Total' : aniData["episodes"]
                             },
                         'Base Speed' : config.getBaseSpeed(),
                         'Score' : {
@@ -65,6 +64,8 @@ class animeFile:
                     json.dump(Data, json_file, indent = 4, ensure_ascii = True)
                     json_file.seek(0)
                     Data = json.load(json_file)
+
+            #makes all instances of null 
         #make list using data from file if file exists
         else:
 
@@ -79,7 +80,6 @@ class animeFile:
         self.animeName = animeName
         self.Path = Path
         self.epCurrent = Data['Info']['Episode Count']['Current']
-        self.epTotal = Data['Info']['Episode Count']['Total']
         self.baseSpeed = Data['Info']['Base Speed']
         self.avgScore = Data['Info']['Score']['Average Score']
         self.scaledScore = Data['Info']['Score']['Scaled Score']
@@ -100,7 +100,6 @@ class animeFile:
         
         #initializes variables to use in method
         animeName = self.animeName
-        print("here9")
         while(True):
             #shows user options
             print("                 " + animeName)
@@ -137,17 +136,30 @@ class animeFile:
         Data = self.Data
 
         while(True):
+
+            #updates episode count
+            epCurrent += 1
+            if(epTotal < epCurrent):
+                epTotal = epCurrent
+
             #asks episode score from user
             print("How do you rate Episode " + str(epCurrent) + " of " + str(animeName) + "?")
 
             epScore = input()
-                #retakes and informs user if input is not valid
+            
+            #retakes and informs user if input is not valid
             while(not epScore.isdigit() and not (epScore == "x" or epScore == "X")):
-                print("That is not a valid input. Please enter a number. To exit the program enter -1")
+                print("That is not a valid input. Please enter a number. To exit the program enter X")
                 epScore = input()
 
-                #stops taking in episode scores if input is -1
+            #stops taking in episode scores if input is X
             if(epScore == "x" or epScore == "X"):
+
+                #resets episode count back to previous episode
+                epCurrent += 1
+                if(epTotal < epCurrent):
+                    epTotal = epCurrent
+
                 break
 
             #if config allows, ask user for speed of show
@@ -169,10 +181,7 @@ class animeFile:
             dataToAppend = {('Episode ' + str(epCurrent)) : {'Score' : str(epScore) , 'Speed' : str(epSpeed)}}
             Data['Episodes'].append(dataToAppend)
 
-            #updates episode count
-            epCurrent += 1
-            if(epTotal < epCurrent):
-                epTotal = epCurrent
+            
 
             #updates data list in instance
             self.Data = Data
@@ -199,9 +208,10 @@ class animeFile:
         Data = self.Data
         epCurrent = self.epCurrent
         impactScore = self.impactScore
+        baseSpeed = self.baseSpeed
 
         #iterates through each episode
-        for x in range (1, epCurrent):
+        for x in range (1, epCurrent + 1):
 
             #get episode rating and speed
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
@@ -227,11 +237,11 @@ class animeFile:
             elif(difference < -0.25 and difference >= -1):
                 total += epRating + (math.log(math.abs(difference), 4) + 2)
 
-        score = total/epCurrent
+        score = total/(epCurrent)
 
         #shifts score based on impact rating
         if(impactScore != -1):
-            score += (impactScore - 5)/5 * 12/epCurrent
+            score += (impactScore - 5)/5 * 12/(epCurrent - 1)
 
         #rounds score
         score = numManip.round(score, 2)
@@ -250,18 +260,53 @@ class animeFile:
 
         #iterates through episodes
         
-        for x in range(1, epCurrent):
+        counter = 0
+        for x in range(1, epCurrent + 1):
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
             total += epRating
+            counter += 1
+
 
         #averages score
-        score = total/epCurrent
+        score = total/(epCurrent)
             
         #saves score
         self.avgScore = score
 
         return score
 
+    def Settings(self):
+        '''Offers setting menu'''
+        
+        #initializes variables
+        animeName = self.animeName
+
+        #prompts user
+        print("                 " + animeName)
+        print("1. Change Status")
+        print("2. Set Impact Score")
+        print("x. Go back")
+
+        #different actions based on user prompt
+        ans = input()
+            #user changes status
+        if(ans == "1"):
+            print("1. WATCHING")
+            print("2. COMPLETED")
+            print("3. PLANNING")
+            print("4. DROPPED")
+            ans = input()
+
+            #status is based on user input
+            if(ans == "1"):
+               changeStatus("WATCHING")
+            elif(ans == "2"):
+                changeStatus("COMPLETED")
+            elif(ans == "3"):
+                changeStatus("PLANNING")
+            elif(ans == "4"):
+                changeStatus("DROPPED")
+        
 
     def writeToFile(self):
         '''writes data to file'''
