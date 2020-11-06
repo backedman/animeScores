@@ -18,7 +18,7 @@ def main():
     baseSpeed = 1.0
     AuthToken = ""
     AccessCode = ""
-    status = "all"
+    status = "ALL"
 
 
 
@@ -31,6 +31,7 @@ def main():
 
     #gets the most up to date user's anime list from website
     aniList = animeList.updateAniListAnimeList()
+    animeList.updateFiles()
     titleList = animeList.getTitleList(status)
 
 
@@ -125,7 +126,6 @@ def main():
                     listIndex = int(ans) - 1 + (sPage - 1) * 9
                     animeName = listResults[listIndex]['media']['title']['userPreferred']
             
-                    print("here")
                     aniShow = animeFile(animeName, status)
 
                 
@@ -148,7 +148,7 @@ def main():
             elif(ans == 3):
                 status = "COMPLETED"
             elif(ans == 4):
-                status = "all"
+                status = "ALL"
             
             #updates list and pages
             titleList = animeList.getTitleList(status)
@@ -186,6 +186,7 @@ def getPath(stat):
     return Path
     pass
 pass
+
 
 if __name__ == '__main__':
     main()

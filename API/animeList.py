@@ -15,6 +15,8 @@ animeListDropped = []
 animeListPaused = []
 animeListRepeating = []
 animeListCurrent = []
+animeListAll = []
+listAll = []
 statusTypes = []
 
 class animeList(object):
@@ -24,7 +26,7 @@ class animeList(object):
     def updateAniListAnimeList():
         '''gets animeList from API and updates the anime list'''
         
-        global animeListWatching, animeListPTW, animeListCompleted, animeListAll
+        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
         UserID = AniListAccess.getUserID()
 
         #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
@@ -41,6 +43,9 @@ class animeList(object):
   	                            title{
                                     userPreferred
                                 }
+                                mediaListEntry {
+                                    status
+                                }
   	                        }
                         }
                     }
@@ -56,14 +61,12 @@ class animeList(object):
 
         #requests data from API into a list 
         animeListData = AniListAccess.getData(query, variables)['data']
-        print(animeListData)
 
         
 
 
         #initializes variables
         aniListLength = len(animeListData['MediaListCollection']['lists']) #amount of lists user has
-        print(str(aniListLength))
         statusTypes = []
         animeListPTW = []
         animeListCompleted = []
@@ -71,18 +74,16 @@ class animeList(object):
         animeListPaused = []
         animeListRepeating = []
         animeListCurrent = []
-        animeListAll = []
         statusTypes = []
             
         for x in range(0, aniListLength): #x is index of array
 
             status = animeListData['MediaListCollection']['lists'][x]['status']    #gets status from the list
-            print('here0')
+            info = animeListData['MediaListCollection']['lists'][x]
             statusTypes.append(status)
 
             if(status == "PLANNING"):
                 animeListPTW = animeListData['MediaListCollection']['lists'][x]
-                print(animeListPTW)
             elif(status == "COMPLETED"):
                 animeListCompleted = animeListData['MediaListCollection']['lists'][x]
             elif(status == "DROPPED"):
@@ -96,27 +97,19 @@ class animeList(object):
 
             
 
-        print("hereb")
         
 
         #sorts all the lists in alphabetical order
-        print(animeListPTW)
         Sort.qSort(animeListPTW)
-        print("ptw")
         Sort.qSort(animeListCompleted)
-        print("Completed")
         Sort.qSort(animeListDropped)
-        print("Dropped")
         Sort.qSort(animeListPaused)
-        print("Paused")
         Sort.qSort(animeListRepeating)
-        print("Repeating")
         Sort.qSort(animeListCurrent)
-        print("Current")
 
-        animeListAll += animeListPTW
-
-        print(animeListAll)
+        listAll = [animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent]
+        animeList.setAnimeListAll()
+        Sort.qSort(animeListAll)
 
  
         pass
@@ -124,37 +117,75 @@ class animeList(object):
     def updateFiles():
         '''opens all the files and move them to the correct folder'''
 
-        
+        global animeListAll, statusTypes, listAll
+
+        iterator = 0
         for status in statusTypes: #iterates through different statuses
-            print("here4")
+
             Path = getPath(status)
-            print("here5")
             files = os.listdir(Path)
-            print('here1')
-            animeListAll = animeList.getAnimeList("all")
+            listAll[iterator]
 
             for aniFileName in files: #gets name of each file
 
                 aniFileDir = Path + aniFileName
-                print('here2')
 
                 with open(aniFileDir, "r+") as json_file: #opens each files and reads them
-                    print(aniFileDir)
                     aniFile = json.load(json_file)
                     animeName = aniFile['Info']['Anime Name']
-                    aniLoc = Search.bSearchAnimeList(animeListAll, animeName) #gets the index of the anime in the animeList
+                    aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
                     aniFileStatus = aniFile['Info']['Status']
-                    aniListStatus = animeListAll[aniLoc]['status']
+                    aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
 
-                    #if(aniFileStatus != aniListStatus):
-                    aniFile['Info']['Status'] = aniListStatus
-                    animeId = int(animeListAll[aniLoc]['media']['id'])
-                    print(animeList.getAniId(animeId, status))
-    
+
+                if(aniFileStatus != aniListStatus):
+
+                    aniFile['Info']['Status'] = aniListStatus #changes status listed in file
+
+                    fileName = numManip.makeSafe(animeName)
+
+                    oPath = aniFileDir
+                    nPath = getPath(aniListStatus) + fileName + ".txt"
+
+                    os.rename(oPath, nPath) #moves file to correct directory
+
+                    with open(nPath, "w+") as json_file:
+                        json.dump(aniFile, json_file, indent = 4, ensure_ascii = True)
+
+                        
+            iterator += 1
+        
+
+    def setAnimeListAll():
+        '''adds the entries of all the lists to animeListAll'''
+        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, listAll
+        
+        listAll = [animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent]
+
+
+        animeListAll = []
+        animeListAll = {
+            'status' : 'ALL',
+            'entries' : [],
+            }
+
+
+        for x in range(0, len(listAll) - 1): #iterates through the amount of lists
+            
+            if(len(listAll[x]) == 0): #moves to the next list if list does not exist
+                listAll.pop(x)
+            
+            aniListLen = len(listAll[x]['entries'])
+
+            for y in range(0, aniListLen): #iterates through entries in the list, adding them to the all list
+                animeEntry = listAll[x]['entries'][y]
+                animeListAll['entries'].append(animeEntry)
+
+        pass
+
 
     def getAniId(animeId, status):
         '''changes the status of an anime on the API'''
-        print('here3')
 
         query = '''
             mutation ($mediaId: Int) {
@@ -176,8 +207,9 @@ class animeList(object):
     def getAnimeList(status):
         '''returns anime list with all information based on status'''
 
+        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll
+
         #sets correct list based on status
-        animeListStat = []
         if(status == "PLANNING"):
             return animeListPTW
         elif(status == "COMPLETED"):
@@ -190,7 +222,8 @@ class animeList(object):
             return animeListRepeating
         elif(status == "CURRENT"):
             return animeListCurrent
-
+        elif(status == "ALL"):
+            return animeListAll
 
         pass
 
@@ -199,7 +232,7 @@ class animeList(object):
         
         #gets correct list
         animeListStat = []
-        animeListStat = animeList.getAnimeList(status)
+        animeListStat = animeList.getAnimeList(status)['entries']
 
         #sets variables for loop
         titleList = []

@@ -40,7 +40,6 @@ class config(object):
                 lineCont = config.readline()
                 lineCont = lineCont.replace("baseSpeed: ", "")
                 lineCont = lineCont.replace("\n", "")
-                print(lineCont)
                 if(lineCont.isdecimal):
                     baseSpeed = float(lineCont)
                 else:
@@ -94,7 +93,6 @@ class config(object):
                 config.write(UserID)
 
                 config.seek(0)
-                print(config.readlines())
                 pass
         pass
 
@@ -106,7 +104,6 @@ class config(object):
 
 
     def getSpeedChangeable():
-        print(speedChangeable)
         return speedChangeable
 
     def getBaseSpeed():

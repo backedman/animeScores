@@ -1,28 +1,38 @@
 import math
-
+from Algorithms.numManip import *
 class Search(object):
     """binary search of an array"""
 
     def bSearchAnimeList(list, target):
         start = 0
-        middle = math.floor(len(list)/2)
-        end = len(list) - 1
-        print(list)
+        middle = math.floor(len(list['entries'])/2)
+        end = len(list['entries']) - 1
+        target = numManip.makeCompareable(target)
+        
 
         #search
+        counter = 0
         while(True):
             middle = (start + end) // 2
-            midpoint = list[middle]['media']['title']['userPreferred']
-            print(target)
-            print(midpoint)
+            midpoint = numManip.makeCompareable(list['entries'][middle]['media']['title']['userPreferred'])
+
             if(midpoint < target):
                 start = middle + 1
-                print("start: " + str(start))
             elif(midpoint > target):
                 end = middle - 1
-                print("end: " + str(end))
             else:
-                print("found")
                 return middle
-            print("middle: " + str(middle))
+            counter += 1
+
+            if(counter >= len(list['entries'])*2): #performs a linear search if binary search is not working
+                return Search.linearSearch(list, target)
         pass
+
+    def linearSearch(list, target):
+       
+       listLen = len(list['entries'])
+       for x in range(0, listLen):
+           listVal = list['entries'][x]['media']['title']['userPreferred']
+
+           if(numManip.makeCompareable(listVal) == numManip.makeCompareable(target)): #returns index if value is found
+               return x

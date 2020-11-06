@@ -11,18 +11,15 @@ class Sort(object):
             return False
 
         aniList = animeList['entries']
-        print('here')
 
         #sets low and high variables
         low = 0;
         high = len(aniList) - 1
 
-        print(str(high))
 
         #title Case list
         aniList = Sort.titleCaseAniList(aniList)
 
-        print(aniList)
 
         pi = 0
 
@@ -33,12 +30,8 @@ class Sort(object):
             Sort.qSortCont(aniList, low, pi - 1);  #Before pi
             Sort.qSortCont(aniList, pi + 1, high); #After pi
 
-        print("partition done")
-        #recursively runs through method again
+        animeList['entries'] = aniList
 
-        
-
-        print("sorting done")
 
     def qSortCont(aniList, low, high):
         '''quick sort anime List but accepts low and high values. Code taken from geeksforgeeks.org/python-program-for-quicksort/'''
@@ -60,10 +53,8 @@ class Sort(object):
 
         i = (low-1)         # index of smaller element
         pivot = aniList[high]['media']['title']['userPreferred']     # pivot
-        print("high: " + str(high))
-        print("low: " + str(low))
+
         
-        print(pivot)
 
         for j in range(low, high):
  
@@ -73,9 +64,9 @@ class Sort(object):
  
                 # increment index of smaller element
                 i = i+1
-                aniList[i]['media']["title"]["userPreferred"], aniList[j]['media']["title"]["userPreferred"] = aniList[j]['media']["title"]["userPreferred"], aniList[i]['media']["title"]["userPreferred"]
+                aniList[i], aniList[j] = aniList[j], aniList[i]
  
-        aniList[i+1]['media']["title"]["userPreferred"], aniList[high]['media']["title"]["userPreferred"] = aniList[high]['media']["title"]["userPreferred"], aniList[i+1]['media']["title"]["userPreferred"]
+        aniList[i+1], aniList[high] = aniList[high], aniList[i+1]
         return (i+1)
 
     def titleCaseAniList(aniList):
