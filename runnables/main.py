@@ -8,7 +8,7 @@ from API.AniListAccess import *
 from API.animeList import *
 from config import *
 from anime.animeFile import *
-from Algorithms.binarySearch import *
+from Algorithms.Search import *
 
 
 
@@ -18,7 +18,7 @@ def main():
     baseSpeed = 1.0
     AuthToken = ""
     AccessCode = ""
-    status = "CURRENT"
+    status = "all"
 
 
 
@@ -30,9 +30,9 @@ def main():
 
 
     #gets the most up to date user's anime list from website
-    aniList = animeList.updateAniListAnimeList(status)
+    aniList = animeList.updateAniListAnimeList()
     titleList = animeList.getTitleList(status)
-    animeList.updateFiles()
+
 
 
     #set current page number and maximum page number (each page has 9)
@@ -65,7 +65,7 @@ def main():
         if(ans == "N" or ans == "n"):
             print("Name of anime?")
             anime = input()
-            animeName = animeList.getAnimeSearch(anime)['title']['romaji']
+            animeName = animeList.getAnimeSearch(anime)['title']['userPreferred']
             aniShow = animeFile(animeName, status)
 
         #goes back a page if user chooses "Q"
@@ -95,7 +95,7 @@ def main():
                 for x in range(1, 10):
                     if(x <= len(listResults) - (sPage - 1) * 9):
                         listIndex = x - 1 + (sPage - 1) * 9
-                        listAnime = listResults[listIndex]['title']['romaji']
+                        listAnime = listResults[listIndex]['title']['userPreferred']
                         print(str(x) + "." + str(listAnime))
                 print("Q. Previous Page ")
                 print("E. Next Page")
@@ -123,7 +123,7 @@ def main():
 
                 elif(int(ans) < 10 and int(ans) > 0):
                     listIndex = int(ans) - 1 + (sPage - 1) * 9
-                    animeName = listResults[listIndex]['title']['romaji']
+                    animeName = listResults[listIndex]['media']['title']['userPreferred']
             
                     print("here")
                     aniShow = animeFile(animeName, status)

@@ -22,10 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Algorithms\binarySearch.py">
+    <Compile Include="Algorithms\Search.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Algorithms\numManip.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Algorithms\Sort.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Algorithms\__init__.py">

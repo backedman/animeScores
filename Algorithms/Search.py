@@ -7,18 +7,22 @@ class Search(object):
         start = 0
         middle = math.floor(len(list)/2)
         end = len(list) - 1
+        print(list)
 
         #search
         while(True):
             middle = (start + end) // 2
-            midpoint = list[middle]['title']['romaji']
+            midpoint = list[middle]['media']['title']['userPreferred']
             print(target)
             print(midpoint)
-            if(target > midpoint):
-                start = middle -1
-            elif(target < midpoint):
+            if(midpoint < target):
+                start = middle + 1
+                print("start: " + str(start))
+            elif(midpoint > target):
                 end = middle - 1
-            elif(target == midpoint):
+                print("end: " + str(end))
+            else:
                 print("found")
-                return list[middle]
+                return middle
+            print("middle: " + str(middle))
         pass
