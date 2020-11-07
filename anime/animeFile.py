@@ -6,6 +6,8 @@ from runnables.main import *
 from runnables.config import *
 from API.animeList import *
 from Algorithms.numManip import *
+from runnables.main import getPath
+
 
 class animeFile:
 
