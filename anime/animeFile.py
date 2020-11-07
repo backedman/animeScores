@@ -2,10 +2,10 @@ import pathlib
 import json
 import os
 import math
+from runnables.main import *
 from runnables.config import *
 from API.animeList import *
 from Algorithms.numManip import *
-
 
 class animeFile:
 
@@ -29,13 +29,8 @@ class animeFile:
 
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
-
-        #from runnables.main import getPath #importing getPath directly here because its not running otherwise for some reason
-
-        Path = getPath(str(status)) + numManip.makeSafe(animeName) + ".txt"
+        Path = getPath(status) + numManip.makeSafe(animeName) + ".txt"
         
-        print("here2")
-
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
             #fixes errors from specific case
@@ -99,7 +94,6 @@ class animeFile:
         #writes to file
         self.writeToFile()
         
-        pass
 
     def userPrompt(self):
         '''prompts user with options on what to do with anime'''
@@ -319,8 +313,6 @@ class animeFile:
         elif(ans == "2"):
             self.impactScore = int(input())
 
-        pass
-
 
     def changeStatus(nStatus):
         
@@ -350,9 +342,8 @@ class animeFile:
         #writes to file
         with open(Path, "w+") as json_file:
             json.dump(Data, json_file, indent = 4, ensure_ascii = True)
-
         pass
-    pass
 
+pass
     
 
