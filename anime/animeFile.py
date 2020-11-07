@@ -29,7 +29,7 @@ class animeFile:
 
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
-        Path = getPath(status) + numManip.makeSafe(animeName) + ".txt"
+        Path = getPath(status) + animeName + ".txt"
         
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
@@ -295,35 +295,18 @@ class animeFile:
             print("2. COMPLETED")
             print("3. PLANNING")
             print("4. DROPPED")
-            print("5. PAUSED")
             ans = input()
 
             #status is based on user input
             if(ans == "1"):
-                changeStatus("WATCHING")
+               changeStatus("WATCHING")
             elif(ans == "2"):
                 changeStatus("COMPLETED")
             elif(ans == "3"):
                 changeStatus("PLANNING")
             elif(ans == "4"):
                 changeStatus("DROPPED")
-            elif(ans == "5"):
-                changeStatus("PAUSED")
         
-        elif(ans == "2"):
-            self.impactScore = int(input())
-
-
-    def changeStatus(nStatus):
-        
-        oPath = self.Path
-        nPath = getPath(nStatus) + numManip.makeSafe(animeName) + ".txt"
-
-        os.rename(oPath, nPath) #moves file to correct directory
-
-        #updates values
-        self.status = nStatus
-        self.Path = nPath
 
     def writeToFile(self):
         '''writes data to file'''
