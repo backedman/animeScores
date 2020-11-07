@@ -2,10 +2,10 @@ import pathlib
 import json
 import os
 import math
-from runnables.main import *
 from runnables.config import *
 from API.animeList import *
 from Algorithms.numManip import *
+
 
 class animeFile:
 
@@ -29,8 +29,17 @@ class animeFile:
 
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
+<<<<<<< HEAD
         Path = getPath(status) + animeName + ".txt"
+=======
+
+        #from runnables.main import getPath #importing getPath directly here because its not running otherwise for some reason
+
+        Path = getPath(str(status)) + numManip.makeSafe(animeName) + ".txt"
+>>>>>>> parent of 7376839... Revert "s"
         
+        print("here2")
+
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
             #fixes errors from specific case
@@ -94,6 +103,7 @@ class animeFile:
         #writes to file
         self.writeToFile()
         
+        pass
 
     def userPrompt(self):
         '''prompts user with options on what to do with anime'''
@@ -307,6 +317,25 @@ class animeFile:
             elif(ans == "4"):
                 changeStatus("DROPPED")
         
+<<<<<<< HEAD
+=======
+        elif(ans == "2"):
+            self.impactScore = int(input())
+
+        pass
+
+
+    def changeStatus(nStatus):
+        
+        oPath = self.Path
+        nPath = getPath(nStatus) + numManip.makeSafe(animeName) + ".txt"
+
+        os.rename(oPath, nPath) #moves file to correct directory
+
+        #updates values
+        self.status = nStatus
+        self.Path = nPath
+>>>>>>> parent of 7376839... Revert "s"
 
     def writeToFile(self):
         '''writes data to file'''
@@ -325,8 +354,9 @@ class animeFile:
         #writes to file
         with open(Path, "w+") as json_file:
             json.dump(Data, json_file, indent = 4, ensure_ascii = True)
-        pass
 
-pass
+        pass
+    pass
+
     
 
