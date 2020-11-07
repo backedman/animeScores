@@ -44,12 +44,6 @@
     <Compile Include="API\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Converter\getData.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Converter\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="runnables\main.py" />
     <Compile Include="API\AniListAccess.py">
       <SubType>Code</SubType>
