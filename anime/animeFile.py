@@ -121,6 +121,7 @@ class animeFile:
                 self.Settings()
 
             elif(ans == "x" or ans == "X"):
+                self.writeToFile()
                 break;
         pass
 
@@ -137,6 +138,7 @@ class animeFile:
 
         while(True):
             #asks episode score from user
+            epCurrent += 1
             print("How do you rate Episode " + str(epCurrent) + " of " + str(animeName) + "?")
 
             epScore = input()
@@ -169,7 +171,6 @@ class animeFile:
             Data['Episodes'].append(dataToAppend)
 
             #updates episode count
-            epCurrent += 1
             if(epTotal < epCurrent):
                 epTotal = epCurrent
 
@@ -200,12 +201,12 @@ class animeFile:
         impactScore = self.impactScore
 
         #iterates through each episode
-        for x in range (1, epCurrent):
+        for x in range (1, epCurrent + 1):
 
             #get episode rating and speed
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
             speed = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Speed'])
-            difference = speed - baseSpeed
+            difference = speed - self.baseSpeed
 
             #scales the score based on speed deviation from base speed
             if(difference >= 0 and difference <= 0.25):
@@ -249,7 +250,7 @@ class animeFile:
 
         #iterates through episodes
         
-        for x in range(1, epCurrent):
+        for x in range(1, epCurrent + 1):
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
             total += epRating
 
