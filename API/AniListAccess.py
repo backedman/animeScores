@@ -135,6 +135,7 @@ class AniListAccess():
 
     def getData(query, variables):
         data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
+        data = json.loads(data.content)
         return data
 
     def getAniListAuthToken():

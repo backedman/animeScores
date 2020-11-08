@@ -1,6 +1,7 @@
 import math
+import os
 
-class numManip(object):
+class valManip(object):
     '''class that allows for manipulation of numbers sent through'''
 
     def round(num, digit):
@@ -25,3 +26,19 @@ class numManip(object):
         name = name.replace(":", " ")
 
         return name
+
+    def makeCompareable(name):
+
+        name = valManip.makeSafe(name)
+
+        name = name.replace("'", "");
+        name = name.replace(".","");
+        name = name.replace("…","");
+
+        return name
+
+    def getPath(stat):
+        Path = os.getcwd() + "/Data/" + stat + "/"
+        os.makedirs(Path, exist_ok=True)
+
+        return Path

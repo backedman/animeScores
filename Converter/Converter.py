@@ -2,7 +2,7 @@ import json
 import os
 from API.animeList import *
 from Converter.getData import *
-from Algorithms.numManip import *
+from Algorithms.valManip import *
 
 class Converter(object):
     
@@ -88,7 +88,7 @@ class Converter(object):
             print(Data)
             
             
-            newPath = mPath + "/" + numManip.makeSafe(animeName) + ".txt"
+            newPath = mPath + "/" + valManip.makeSafe(animeName) + ".txt"
             os.rename(aPath, newPath)
 
             with open(newPath, "w+") as json_file:

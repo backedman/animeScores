@@ -5,7 +5,7 @@ import math
 from runnables.main import *
 from runnables.config import *
 from API.animeList import *
-from Algorithms.numManip import *
+from Algorithms.valManip import *
 
 class animeFile:
 
@@ -29,7 +29,7 @@ class animeFile:
 
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
-        Path = getPath(status) + animeName + ".txt"
+        Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
         
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
@@ -234,7 +234,7 @@ class animeFile:
             score += (impactScore - 5)/5 * 12/epCurrent
 
         #rounds score
-        score = numManip.round(score, 2)
+        score = valManip.round(score, 2)
         
         #saves score
         self.scaledScore = score
@@ -262,6 +262,62 @@ class animeFile:
 
         return score
 
+    def Settings(self):
+        '''Offers setting menu'''
+        
+        #initializes variables
+        animeName = self.animeName
+
+        #prompts user
+        print("                 " + animeName)
+        print("1. Change Status")
+        print("2. Set Impact Score")
+        print("x. Go back")
+
+        #different actions based on user prompt
+        ans = input()
+            #user changes status
+        if(ans == "1"):
+            print("1. WATCHING")
+            print("2. COMPLETED")
+            print("3. PLANNING")
+            print("4. DROPPED")
+            print("5. PAUSED")
+            ans = input()
+
+            #status is based on user input
+            if(ans == "1"):
+                self.changeStatus("WATCHING")
+            elif(ans == "2"):
+                self.changeStatus("COMPLETED")
+            elif(ans == "3"):
+                self.changeStatus("PLANNING")
+            elif(ans == "4"):
+                self.changeStatus("DROPPED")
+            elif(ans == "5"):
+                self.changeStatus("PAUSED")
+        
+        elif(ans == "2"):
+            self.impactScore = int(input())
+
+        pass
+
+    def changeStatus(self, nStatus):
+        
+        oPath = self.Path
+        nPath = valManip.getPath(nStatus) + valManip.makeSafe(self.animeName) + ".txt"
+
+        os.rename(oPath, nPath) #moves file to correct directory
+
+        animeList.changeStatus(self.animeName, nStatus) #changes anime status on user account
+
+        #updates values
+        self.status = nStatus
+        self.Path = nPath
+
+        self.writeToFile() #saves new data to file
+
+        pass
 
     def writeToFile(self):
         '''writes data to file'''
@@ -271,6 +327,7 @@ class animeFile:
         Data = self.Data
         Data['Info']['Episode Count']['Current'] = self.epCurrent
         Data['Info']['Episode Count']['Total'] = self.epTotal
+        Data['Info']['Status'] = self.status
         Data['Info']['Base Speed'] = self.baseSpeed
         Data['Info']['Score']['Average Score'] = self.avgScore
         Data['Info']['Score']['Scaled Score'] = self.scaledScore
