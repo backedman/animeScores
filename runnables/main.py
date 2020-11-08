@@ -18,7 +18,7 @@ def main():
     baseSpeed = 1.0
     AuthToken = ""
     AccessCode = ""
-    status = "PLANNING"
+    status = "CURRENT"
 
     # updates or creates information from config
     config.readConfig()
@@ -128,20 +128,26 @@ def main():
         # opens options menu
         elif (ans == "O" or ans == "o"):
             # asks user for input
-            print("1. Open PLANNING list")
-            print("2. Open WATCHING list")
-            print("3. Open COMPLETED list")
-            print("4. Open ALL list")
+            print("1. Open WATCHING list")
+            print("2. Open COMPLETED list")
+            print("3. Open PLANNING list")
+            print("4. Open PAUSED list")
+            print("5. Open DROPPED list")
+            print("6. Open ALL list")
             ans = int(input())
 
             # switches list if user chooses corresponding option
-            if (ans == 1):
-                status = "PLANNING"
-            elif (ans == 2):
+            if(ans == 1):
                 status = "CURRENT"
-            elif (ans == 3):
+            elif(ans == 2):
                 status = "COMPLETED"
-            elif (ans == 4):
+            elif(ans == 3):
+                status = "PLANNING"
+            elif(ans == 4):
+                status = "PAUSED"
+            elif(ans == 5):
+                status = "DROPPED"
+            elif(ans == 6):
                 status = "ALL"
 
             # updates list and pages
