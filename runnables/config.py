@@ -40,25 +40,26 @@ class config(object):
                 lineCont = config.readline()
                 lineCont = lineCont.replace("baseSpeed: ", "")
                 lineCont = lineCont.replace("\n", "")
-                print(lineCont)
                 if(lineCont.isdecimal):
                     baseSpeed = float(lineCont)
                 else:
                     baseSpeed = 1.0
 
                 #sets ANILIST AuthToken
+                config.readline()
                 lineCont = config.readline()
-                lineCont = lineCont.replace("ANILIST AuthToken: ", "")
+                lineCont = lineCont.replace("ANILIST AuthToken:", "")
                 lineCont = lineCont.replace("\n", "")
-                AuthToken = lineCont 
+                AuthToken = lineCont
                 AniListAccess.setAuthToken(AuthToken)
 
                 #sets ANILIST AccessCode
+                config.readline()
                 lineCont = config.readline()
                 lineCont = lineCont.replace("ANILIST AccessCode: ", "")
                 lineCont = lineCont.replace("\n", "")
                 AccessCode = lineCont
-                AniListAccess.setAccessToken(AccessCode)
+                AccessCode = AniListAccess.setAccessToken(AccessCode)
              
                 #sets User ID
                 lineCont = config.readline()
@@ -82,16 +83,19 @@ class config(object):
                 config.write("ANILIST AuthToken: ")
                 AuthToken = AniListAccess.findAniListAuthToken()
                 config.write(AuthToken)
+                config.write("\n")
 
                 #get AniList Access Token to manage user account
                 config.write("ANILIST AccessCode: ")
                 AccessCode = AniListAccess.findAniListAccessToken(AuthToken)
                 config.write(AccessCode)
+                config.write("\n")
             
                 #get UserID
                 config.write("ANILIST UserID: ")
                 UserID = AniListAccess.findUserID()
                 config.write(UserID)
+                config.write("\n")
 
                 config.seek(0)
                 print(config.readlines())

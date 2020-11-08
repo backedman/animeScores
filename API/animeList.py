@@ -128,15 +128,11 @@ class animeList(object):
 
                 aniFileDir = Path + aniFileName
 
-                print(animeListAll)
-
                 with open(aniFileDir, "r+") as json_file: #opens each files and reads them
                     aniFile = json.load(json_file)
                     animeName = aniFile['Info']['Anime Name']
                     aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
                     aniFileStatus = aniFile['Info']['Status']
-                    print("here")
-                    print(animeName)
                     aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
 
 

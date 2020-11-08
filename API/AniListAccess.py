@@ -56,10 +56,13 @@ class AniListAccess():
         #gets accessToken
         accessToken = requests.post(url = ACCESS_URL, json = form_params,  headers = header)
         accessToken = json.loads(accessToken.content)
+        print(accessToken)
         accessToken = accessToken['access_token']
         ACCESS_TOKEN = accessToken
         AniListAccess.setAccHead()
                 
+        return ACCESS_TOKEN
+
         pass
 
     #finds user ID from server using Access Code

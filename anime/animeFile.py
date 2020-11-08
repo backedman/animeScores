@@ -100,7 +100,6 @@ class animeFile:
         
         #initializes variables to use in method
         animeName = self.animeName
-        print("here9")
         while(True):
             #shows user options
             print("                 " + animeName)

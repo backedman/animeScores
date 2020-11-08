@@ -166,7 +166,6 @@ def main():
             listIndex = int(ans) - 1 + (page - 1) * 9
             animeName = titleList[listIndex]
 
-            print("here")
             aniShow = animeFile(animeName, status)
 
     pass
