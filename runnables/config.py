@@ -2,6 +2,7 @@ import pathlib
 import requests
 import json
 import webbrowser
+import sys
 from API.animeList import *
 from API.AniListAccess import *
 
@@ -21,85 +22,135 @@ class config(object):
     def readConfig():
         global speedChangeable
         global baseSpeed
+        global userID
         global AuthToken
         global AccessCode
 
 
         confExists = pathlib.Path("config.txt").exists()
         if confExists:
-            with open("config.txt", "r") as config:
+            with open("config.txt", "r+") as file:
+
 
                 #sets speedChangeable
-                lineCont = config.readline()
+                lineCont = file.readline()
                 if(lineCont.find('True') > -1):
                     speedChangeable = True
                 else:
                     speedChangeable = False
-        
+                
+
+
                 #sets baseSpeed
-                lineCont = config.readline()
-                lineCont = lineCont.replace("baseSpeed: ", "")
-                lineCont = lineCont.replace("\n", "")
-                if(lineCont.isdecimal):
-                    baseSpeed = float(lineCont)
+                baseSpeed = file.readline()
+                baseSpeed = baseSpeed.replace("baseSpeed: ", "")
+                baseSpeed = baseSpeed.replace("\n", "")
+                if(baseSpeed.isdecimal):
+                    baseSpeed = float(baseSpeed)
                 else:
                     baseSpeed = 1.0
 
+
+                
+                #sets User ID
+                userID = file.readline()
+
+                userID = userID.replace("ANILIST UserID: ", "")
+                userID = userID.replace("\n", "")
+
+                AniListAccess.setUserID(userID)
+                
+
+
+
                 #sets ANILIST AuthToken
-                config.readline()
-                lineCont = config.readline()
-                lineCont = lineCont.replace("ANILIST AuthToken:", "")
-                lineCont = lineCont.replace("\n", "")
-                AuthToken = lineCont
+                AuthToken = file.readline()
+
+                AuthToken = AuthToken.replace("ANILIST AuthToken:", "")
+                AuthToken = AuthToken.replace("\n", "")
+                AuthToken = AuthToken.replace(" ", "")
+
                 AniListAccess.setAuthToken(AuthToken)
 
+
+
                 #sets ANILIST AccessCode
-                config.readline()
-                lineCont = config.readline()
-                lineCont = lineCont.replace("ANILIST AccessCode: ", "")
-                lineCont = lineCont.replace("\n", "")
-                AccessCode = lineCont
-                AccessCode = AniListAccess.setAccessToken(AccessCode)
-             
-                #sets User ID
-                lineCont = config.readline()
-                lineCont = lineCont.replace("ANILIST UserID: ", "")
-                lineCont = lineCont.replace("\n", "")
-                userID = lineCont
-                AniListAccess.setUserID(userID)
+                AccessCode = file.readline()
+                
+                    #takes only the values from the line
+                AccessCode = AccessCode.replace("ANILIST AccessCode: ", "")
+                AccessCode = AccessCode.replace("\n", "")
+
+                if(AccessCode == ""): #if the line is empty, then part 2 of config creation starts. If its not, then the configs values are pulled
+                    
+                    AccessCode = AniListAccess.findAniListAccessToken(AuthToken) #finds accessToken
+                    userID = AniListAccess.findUserID()
+
+                    config.rewriteConfig()
+
+                else:
+                    AniListAccess.setAccessToken(AccessCode)
+
+
+                #if userId is blank for some reason, then it is attempted to be found again
+                if(userID == "None"):
+                    userID = AniListAccess.findUserID()
+                    
+                    config.rewriteConfig()
+                
 
 
                 pass
         else:
-            with open("config.txt", "w+") as config:
-                config.write("Enable_Speed_Changes: False\n")
+            with open("config.txt", "w+") as file:
+                file.write("Enable_Speed_Changes: False\n")
                 speedChangeable = False
 
-                config.write("baseSpeed: 1.0\n")
+                file.write("baseSpeed: 1.0\n")
                 baseSpeed = 1.0
 
+                #get UserID
+                file.write("ANILIST UserID: ")
+                file.write("\n")
 
                 #get AniList Auth token to get permission to access user account
-                config.write("ANILIST AuthToken: ")
-                AuthToken = AniListAccess.findAniListAuthToken()
-                config.write(AuthToken)
-                config.write("\n")
+                file.write("ANILIST AuthToken: ")
+                AniListAccess.findAniListAuthToken()
+                print("Log into the link above and copy the code into the 'Auth Token' section of the config file")
+                file.write("\n")
 
                 #get AniList Access Token to manage user account
-                config.write("ANILIST AccessCode: ")
-                AccessCode = AniListAccess.findAniListAccessToken(AuthToken)
-                config.write(AccessCode)
-                config.write("\n")
-            
-                #get UserID
-                config.write("ANILIST UserID: ")
-                UserID = AniListAccess.findUserID()
-                config.write(UserID)
-                config.write("\n")
+                file.write("ANILIST AccessCode: ")
+                file.write("\n")
 
-                config.seek(0)
-                print(config.readlines())
+                file.seek(0)
+                print(file.readlines())
+
+                input("Press Enter to Exit")
+
+                sys.exit()
+
                 pass
+        pass
+
+    def rewriteConfig():
+        global speedChangeable
+        global baseSpeed
+        global userID
+        global AuthToken
+        global AccessCode
+
+
+        with open("config.txt", "w+") as file:
+
+            file.write("Enable_Speed_Changes: " + str(speedChangeable) + "\n")
+            file.write("baseSpeed: " + str(baseSpeed) + "\n")
+            file.write("ANILIST UserID: " + str(AniListAccess.getUserID()) + "\n")
+            file.write("ANILIST AuthToken: " + str(AuthToken) + "\n")
+            file.write("ANILIST AccessCode: " + str(AccessCode) + "\n")
+
+            print(userID)
+
         pass
 
 
@@ -110,7 +161,6 @@ class config(object):
 
 
     def getSpeedChangeable():
-        print(speedChangeable)
         return speedChangeable
 
     def getBaseSpeed():

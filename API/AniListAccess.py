@@ -28,9 +28,6 @@ class AniListAccess():
         
         newAUTHORIZE_URL = AUTHORIZE_URL + "client_id=" + CLIENT_ID + "&redirect_uri=" + REDIRECT_URI + "&response_type=" + RESPONSE_TYPE
         print(newAUTHORIZE_URL)
-        authToken = input("")
-
-        return authToken
         
 
     #uses AuthToken to get AccessToken
@@ -56,7 +53,6 @@ class AniListAccess():
         #gets accessToken
         accessToken = requests.post(url = ACCESS_URL, json = form_params,  headers = header)
         accessToken = json.loads(accessToken.content)
-        print(accessToken)
         accessToken = accessToken['access_token']
         ACCESS_TOKEN = accessToken
         AniListAccess.setAccHead()
@@ -82,11 +78,10 @@ class AniListAccess():
             }
 
         #get user data from server
-        userData = getData(query, variables)
+        userData = AniListAccess.getData(query, variables)
         
         #gets the user data
-        userID = json.loads(userData.content)
-        USER_ID = userID["data"]
+        USER_ID = userData['data']['Viewer']['id']
         pass
     
     

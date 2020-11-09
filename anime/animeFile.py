@@ -2,7 +2,6 @@ import pathlib
 import json
 import os
 import math
-from runnables.main import *
 from runnables.config import *
 from API.animeList import *
 from Algorithms.valManip import *
