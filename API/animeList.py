@@ -189,8 +189,8 @@ class animeList(object):
         
 
         query = '''
-            mutation ($id: Int, $mediaId: Int, $status: MediaListStatus) {
-                SaveMediaListEntry (id: $id, mediaId: $mediaId, status: $status) {
+            mutation ($id: Int, $status: MediaListStatus) {
+                SaveMediaListEntry (id: $id, status: $status) {
                     id
                     status
                 }
@@ -205,8 +205,26 @@ class animeList(object):
         AniListAccess.getData(query, variables)
 
         pass
+
+    def changeProgress(animeName, epNumber):
+        query = '''
+            mutation ($id: Int, $progress: Int) {
+                SaveMediaListEntry (id: $id, progress: $progress) {
+                    id
+                    progress
+                }
+            }
+        '''
+        variables = {
+            'id' : animeList.getEntryId(animeName),
+            'progress' : epNumber
+        }
         
+        print(AniListAccess.getData(query, variables))
         
+
+        pass
+
         #
         #                                below are all the get methods
         #

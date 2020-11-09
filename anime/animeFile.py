@@ -170,8 +170,7 @@ class animeFile:
             Data['Episodes'].append(dataToAppend)
 
             #updates episode count
-            if(epTotal < epCurrent):
-                epTotal = epCurrent
+            animeList.changeProgress(animeName, epCurrent)
 
             #updates data list in instance
             self.Data = Data
