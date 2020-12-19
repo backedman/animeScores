@@ -105,8 +105,7 @@ class animeList(object):
         Sort.qSort(animeListRepeating)
         Sort.qSort(animeListCurrent)
 
-        listAll = [animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent]
-        animeList.setAnimeListAll()
+        animeList.setAnimeListAll() #adds all the other lists into one big list
         Sort.qSort(animeListAll)
 
  
@@ -124,6 +123,7 @@ class animeList(object):
             files = os.listdir(Path)
             listAll[iterator]
 
+
             for aniFileName in files: #gets name of each file
 
                 aniFileDir = Path + aniFileName
@@ -133,8 +133,12 @@ class animeList(object):
                     animeName = aniFile['Info']['Anime Name']
                     aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
                     aniFileStatus = aniFile['Info']['Status']
-                    aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
 
+                    try:
+                        aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
+
+                    except TypeError: #if the anime from file cannot be found in the data brought in from the api, it throws an error message to check for later
+                        print("ERROR COULD NOT FIND " + animeName)
 
                 if(aniFileStatus != aniListStatus):
 
@@ -168,9 +172,9 @@ class animeList(object):
             }
 
 
-        for x in range(0, len(listAll) - 1): #iterates through the amount of lists
+        for x in range(0, len(listAll)): #iterates through the amount of lists (PTW, Completed, Dropped, etc.) 
             
-            if(len(listAll[x]) == 0): #moves to the next list if list does not exist
+            if(len(listAll[x]) == 0): #moves to the next list if list does not exist (user has no anime in that list)
                 listAll.pop(x)
             
             aniListLen = len(listAll[x]['entries'])
@@ -202,7 +206,10 @@ class animeList(object):
             'status' : status
         }
 
-        AniListAccess.getData(query, variables)
+        data = (AniListAccess.getData(query, variables))
+        status = data['data']['SaveMediaListEntry']['status']
+
+        print("Status of " + animeName + " changed to " + (str)(status))
 
         pass
 
@@ -220,7 +227,10 @@ class animeList(object):
             'progress' : epNumber
         }
         
-        print(AniListAccess.getData(query, variables))
+        data = AniListAccess.getData(query, variables)
+        epNum = data['data']['SaveMediaListEntry']['progress']
+
+        print("aniList.co updated " + animeName + " to " + epNum) #verifies to user that the anime was updated on the website
         
 
         pass

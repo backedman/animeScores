@@ -230,9 +230,6 @@ class animeFile:
         #shifts score based on impact rating
         if(impactScore != -1):
             score += (impactScore - 5)/5 * 12/epCurrent
-
-        #rounds score
-        score = valManip.round(score, 2)
         
         #saves score
         self.scaledScore = score
@@ -296,6 +293,7 @@ class animeFile:
                 self.changeStatus("PAUSED")
         
         elif(ans == "2"):
+            print("Type impact score (1-10)")
             self.impactScore = int(input())
 
         pass
@@ -327,9 +325,9 @@ class animeFile:
         Data['Info']['Episode Count']['Total'] = self.epTotal
         Data['Info']['Status'] = self.status
         Data['Info']['Base Speed'] = self.baseSpeed
-        Data['Info']['Score']['Average Score'] = self.avgScore
-        Data['Info']['Score']['Scaled Score'] = self.scaledScore
-        Data['Info']['Score']['NN Score'] = self.nnScore
+        Data['Info']['Score']['Average Score'] = valManip.round(self.avgScore, 2)
+        Data['Info']['Score']['Scaled Score'] = valManip.round(self.scaledScore, 2)
+        Data['Info']['Score']['NN Score'] = valManip.round(self.nnScore, 2)
         Data['Info']['Score']['Real Score'] = self.realScore
 
         #writes to file
