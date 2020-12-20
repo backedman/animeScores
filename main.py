@@ -4,6 +4,7 @@ import requests
 import json
 import webbrowser
 import os
+import threading
 from API import animeList
 from API.AniListAccess import *
 from API.animeList import *
@@ -127,39 +128,54 @@ def main():
 
         # opens options menu
         elif (ans == "O" or ans == "o"):
+            
             # asks user for input
-            print("1. Open WATCHING list")
-            print("2. Open COMPLETED list")
-            print("3. Open PLANNING list")
-            print("4. Open PAUSED list")
-            print("5. Open DROPPED list")
-            print("6. Open ALL list")
+            print("1. Open another list")
+            print("2. Mass update scores")
             ans = int(input())
 
-            # switches list if user chooses corresponding option
-            if(ans == 1):
-                status = "CURRENT"
-            elif(ans == 2):
-                status = "COMPLETED"
-            elif(ans == 3):
-                status = "PLANNING"
-            elif(ans == 4):
-                status = "PAUSED"
-            elif(ans == 5):
-                status = "DROPPED"
-            elif(ans == 6):
-                status = "ALL"
+            if(ans == 1): #user changes between different list types (current, completed, planning, etc.)
 
-            # updates list and pages
-            titleList = animeList.getTitleList(status)
-            page = 1
-            maxPage = int((len(titleList) / 9 + 1.5))
+                # asks user for input
+                print("1. Open WATCHING list")
+                print("2. Open COMPLETED list")
+                print("3. Open PLANNING list")
+                print("4. Open PAUSED list")
+                print("5. Open DROPPED list")
+                print("6. Open ALL list")
+                ans = int(input())
+
+                # switches list if user chooses corresponding option
+                if(ans == 1):
+                    status = "CURRENT"
+                elif(ans == 2):
+                    status = "COMPLETED"
+                elif(ans == 3):
+                    status = "PLANNING"
+                elif(ans == 4):
+                    status = "PAUSED"
+                elif(ans == 5):
+                    status = "DROPPED"
+                elif(ans == 6):
+                    status = "ALL"
+
+                # updates list and pages
+                titleList = animeList.getTitleList(status)
+                page = 1
+                maxPage = int((len(titleList) / 9 + 1.5))
+
+            elif(ans == 2):
+                scrUpThr = threading.Thread(target=animeList.massUpdateScore())
+                
+                scrUpThr.start()
+
+
 
 
 
         # exits program if user chooses "X"
         elif (ans == "x" or ans == "X"):
-            break
+                break
 
         # chooses corresponding animeName if user chooses a number between 1 and 9
         elif (int(ans) < 10 and int(ans) > 0):
@@ -169,9 +185,6 @@ def main():
             aniShow = animeFile(animeName, status)
 
     pass
-
-
-
 
 
 if __name__ == '__main__':

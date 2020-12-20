@@ -29,6 +29,7 @@ class animeFile:
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
         Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
+        print(Path)
         
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
@@ -185,8 +186,8 @@ class animeFile:
         pass
 
     def printStats(self):
-        print("Average Score: " + str(self.calcAvgScore()))
-        print("Scaled Score: " + str(self.calcScaledScore()))
+        print("Average Score: " + str(valManip.round(self.calcAvgScore(), 2)))
+        print("Scaled Score: " + str(valManip.round(self.calcScaledScore(), 2)))
         pass
 
     def calcScaledScore(self):
@@ -244,12 +245,12 @@ class animeFile:
         total = 0
 
         #iterates through episodes
-        
         for x in range(1, epCurrent + 1):
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
             total += epRating
 
         #averages score
+        print(epCurrent)
         score = total/epCurrent
             
         #saves score
@@ -267,6 +268,8 @@ class animeFile:
         print("                 " + animeName)
         print("1. Change Status")
         print("2. Set Impact Score")
+        print("3. Set Real Score")
+        print("4. update Stats on website")
         print("x. Go back")
 
         #different actions based on user prompt
@@ -295,6 +298,14 @@ class animeFile:
         elif(ans == "2"):
             print("Type impact score (1-10)")
             self.impactScore = int(input())
+
+        elif(ans == "3"):
+            print("Type real score (1-10)")
+            self.realScore = int(input())
+
+        elif(ans == "4"):
+            self.writeToFile()
+            self.updateStats()
 
         pass
 
@@ -333,7 +344,15 @@ class animeFile:
         #writes to file
         with open(Path, "w+") as json_file:
             json.dump(Data, json_file, indent = 4, ensure_ascii = True)
+
         pass
+
+    def updateStats(self):
+        '''update stats of anime on website'''
+
+        animeList.changeStatus(self.animeName, self.status)
+        animeList.changeProgress(self.animeName, self.epCurrent)
+        animeList.changeScore(self.animeName, self.scaledScore)
 
 pass
     

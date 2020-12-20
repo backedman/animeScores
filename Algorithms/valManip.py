@@ -9,7 +9,7 @@ class valManip(object):
         
         #calculates rounded number
         digitMulti = math.pow(10, digit)
-        roundedNum = int((num * digitMulti + 0.5))/(digitMulti)
+        roundedNum = (int)(num * digitMulti + 0.5)/(digitMulti)
 
         return roundedNum
 

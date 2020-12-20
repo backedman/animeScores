@@ -132,9 +132,19 @@ class AniListAccess():
 #
 
     def getData(query, variables):
+
         data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
-        data = json.loads(data.content)
-        return data
+        reqRemaining = data.headers['X-RateLimit-Remaining'] #requests remaining
+
+        returnData = (json.loads(data.content))
+        returnData = returnData['data']
+        
+        returnData = { 'data' : returnData,
+                       'requests remaining' : reqRemaining
+            }
+
+        return returnData
+        
 
     def getAniListAuthToken():
         return AUTH_TOKEN
