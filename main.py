@@ -11,6 +11,7 @@ from API.animeList import *
 from runnables.config import *
 from anime.animeFile import *
 from Algorithms.Search import *
+from neuralNetwork.neuralNet import *
 
 
 def main():
@@ -20,6 +21,7 @@ def main():
     AuthToken = ""
     AccessCode = ""
     status = "CURRENT"
+
 
     # updates or creates information from config
     config.readConfig()
@@ -31,12 +33,17 @@ def main():
     animeList.updateFiles()
     titleList = animeList.getTitleList(status)
 
+    #initializes neuralNetwork
+    neuralNet.initialize()
+
     # set current page number and maximum page number (each page has 9)
     maxPage = int((len(titleList) / 9 + 1.5))
     page = 1
 
     # program continues until user wants to exit
     while (True):
+        addSpacing()
+
         print("Page " + str(page) + "/" + str(maxPage))
         # shows anime in page
         for x in range(1, 10):
@@ -132,6 +139,7 @@ def main():
             # asks user for input
             print("1. Open another list")
             print("2. Mass update scores")
+            print("3. Neural Network")
             ans = int(input())
 
             if(ans == 1): #user changes between different list types (current, completed, planning, etc.)
@@ -165,9 +173,64 @@ def main():
                 maxPage = int((len(titleList) / 9 + 1.5))
 
             elif(ans == 2):
-                scrUpThr = threading.Thread(target=animeList.massUpdateScore())
+
+                animeList.massUpdateScore() #updates all scores to real score
+                animeList.massUpdateNNScore() #updates the Neural Network scores in each file
+
+            elif(ans == 3):
+
+                print("1. run with Impact Rating")
+                print("2. run without Impact Rating")
+                print("3. run Both with and without (recommended)")
+
+                ans = int(input())
+
+                runImpact = False
+                runWithout = False
+
+                if(ans == 1):
+                    runImpact = True
+
+                elif(ans == 2):
+                    runWithout = True
+
+                elif(ans == 3):
+                    runImpact = True
+                    runWithout = True
+
+
+                print("1. run for 1000 iterations")
+                print("2. run for 10000 iterations")
+                print("3. run for a custom amount of iterations")
+                print("4. recalculate (starts from scratch)")
+                print("X. back")
+
+                ans = int(input())
+
+                if(ans == 1):
+                    iterations = 1000
+                    cont = True
+
+                elif(ans == 2):
+                    iterations = 10000
+                    cont = True
+
+                elif(ans == 3):
+                    print("How many iterations?")
+                    iterations = int(input())
+                    cont = True
+
+                elif(ans == 4):
+                    iterations = 10000
+                    cont = False
+
+                if(runImpact):
+                    neuralNet.train(iterations, cont)
+                if(runWithout):
+                    neuralNet.trainNoImpact(iterations, cont)
+
+
                 
-                scrUpThr.start()
 
 
 
@@ -183,9 +246,30 @@ def main():
             animeName = titleList[listIndex]
 
             aniShow = animeFile(animeName, status)
-
+            
     pass
+
+def addSpacing():
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+    print("       ")
+
+
 
 
 if __name__ == '__main__':
-    main()
+    mainThread = threading.Thread(target = main())
+
+    mainThread.start()

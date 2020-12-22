@@ -12,7 +12,7 @@
     <OutputPath>.</OutputPath>
     <Name>animeScores</Name>
     <RootNamespace>showScores</RootNamespace>
-    <InterpreterId>CondaEnv|CondaEnv|3</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.8</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,6 +53,12 @@
     <Compile Include="API\AniListAccess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="neuralNetwork\compileData.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="neuralNetwork\neuralNet.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runnables\config.py">
       <SubType>Code</SubType>
     </Compile>
@@ -65,6 +71,7 @@
     <Folder Include="anime\" />
     <Folder Include="API\" />
     <Folder Include="Converter\" />
+    <Folder Include="neuralNetwork\" />
     <Folder Include="runnables\" />
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +96,8 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|3" />
+    <InterpreterReference Include="Global|PythonCore|3.8" />
+    <InterpreterReference Include="Global|PythonCore|3.9" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

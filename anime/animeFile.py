@@ -2,9 +2,11 @@ import pathlib
 import json
 import os
 import math
+import numpy
 from runnables.config import *
 from API.animeList import *
 from Algorithms.valManip import *
+from neuralNetwork.neuralNet import *
 
 class animeFile:
 
@@ -188,6 +190,7 @@ class animeFile:
     def printStats(self):
         print("Average Score: " + str(valManip.round(self.calcAvgScore(), 2)))
         print("Scaled Score: " + str(valManip.round(self.calcScaledScore(), 2)))
+        print("NN Score: " + str(valManip.round(self.calcNNScore(), 2)))
         pass
 
     def calcScaledScore(self):
@@ -257,6 +260,80 @@ class animeFile:
         self.avgScore = score
 
         return score
+
+    def getAvgEpDeviation(self):
+        '''returns the average deviation of score from the average score for the anime'''
+
+        #initializes variables
+        epCurrent = self.epCurrent
+        Data = self.Data
+        avgScore = self.calcAvgScore()
+        totalDev = 0
+
+        for x in range(1, epCurrent + 1): #adds up the difference between the episode's score and the average score for all episodes
+
+            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
+            totalDev += abs(avgScore - epRating)
+
+        avgDev = totalDev/epCurrent #gets the average of the differences between the episode's score and average score
+
+        avgDev = valManip.round(avgDev, 4)
+
+        return avgDev
+
+    def getAvgSpeedDeviation(self):
+        '''returns the average deviation of speed from the base speed for the anime'''
+
+        #initialized variables
+        epCurrent = self.epCurrent
+        Data = self.Data
+        baseSpeed = self.baseSpeed
+        totalDev = 0
+
+        for x in range(1, epCurrent + 1): #adds up the differences between the episode's speed and the base speed for all episodes
+
+            speed = Data['Episodes'][x-1]['Episode ' + (str)(x)]['Speed']
+            totalDev += baseSpeed - float(speed)
+
+        avgDev = totalDev/epCurrent
+
+        avgDev = valManip.round(avgDev, 4)
+
+        return avgDev
+
+    def calcNNScore(self):
+        '''gets the NN score for the anime'''
+
+        #initializes variables
+        epCount = self.epCurrent
+        avgScore = self.avgScore
+        impactScore = self.impactScore
+        baseSpeedDev = self.getAvgSpeedDeviation()
+        epScoreDev = self.getAvgEpDeviation()
+
+        if((self.status != "COMPLETED") and (epCount < 12)):
+            epCount = 12
+
+        #gets the nn score prediction
+        if(impactScore != -1): #if show has impact rating use this version
+            stats = numpy.array([epCount, avgScore, impactScore, baseSpeedDev, epScoreDev])
+            stats = numpy.reshape(stats, (-1, 5))
+            prediction = neuralNet.predict(stats)
+
+
+        else: #if show does not have impact rating use this version
+            stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
+            stats = numpy.reshape(stats, (-1, 4))
+            prediction = neuralNet.predictNoImpact(stats)
+
+            print("here")
+
+        
+
+        self.nnScore = prediction
+
+        return prediction
+
 
     def Settings(self):
         '''Offers setting menu'''

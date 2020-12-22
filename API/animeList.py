@@ -184,8 +184,6 @@ class animeList(object):
                 animeEntry = listAll[x]['entries'][y]
                 animeListAll['entries'].append(animeEntry)
 
-        print(animeListAll)
-
         pass
 
 
@@ -242,7 +240,7 @@ class animeList(object):
 
     def changeScore(animeName, score):
 
-        score = (float) (valManip.round(score, 2)) #converts score into something out of 100 instead of 10 (that is how it is used in anilist)
+        score = (float) (valManip.round(score, 1)) #rounds score
 
         query = '''
             mutation ($id: Int, $score: Float) {
@@ -271,9 +269,6 @@ class animeList(object):
 
       data = animeListAll['entries'] #accesses the necessary sub sets in list to be called throughout the rest of the method
       
-
-      print("made it here")
-
       for x in range(0, len(data)):
           #gets animeName, status, and score for comparison and updates
           animeName = data[x]['media']['title']['userPreferred']
