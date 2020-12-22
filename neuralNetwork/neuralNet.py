@@ -15,6 +15,10 @@ class neuralNet(object):
         global model
         global modelNoImpact
 
+        #where the weights are stored
+        checkpoint_path = "nnWeights/Main/cp.ckpt"
+        checkpoint_dir = os.path.dirname(checkpoint_path) 
+
         #creates the neural network with the layers
         model = keras.Sequential(
             [
@@ -25,6 +29,13 @@ class neuralNet(object):
             ]
         )
 
+        if(os.path.exists(checkpoint_dir)):
+            model.load_weights(checkpoint_path)
+
+
+        checkpoint_path = "nnWeights/NoImpact/cp.ckpt"
+        checkpoint_dir = os.path.dirname(checkpoint_path)
+
         modelNoImpact = keras.Sequential(
             [
             layers.Dense(40, name="layer1", activation= "relu"),
@@ -33,6 +44,11 @@ class neuralNet(object):
             layers.Dense(1, name = "layer4")
             ]
         )
+
+        if(os.path.exists(checkpoint_dir)):
+            modelNoImpact.load_weights(checkpoint_path)
+
+
 
 
     def train(iterations, cont, hasImpactRating=True):

@@ -227,7 +227,7 @@ class animeFile:
                 total += (epRating - 2 * difference)
 
             elif(difference < -0.25 and difference >= -1):
-                total += epRating + (math.log(math.abs(difference), 4) + 2)
+                total += epRating + (math.log(abs(difference), 4) + 2)
 
         score = total/epCurrent
 
