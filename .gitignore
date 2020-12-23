@@ -1,4 +1,4 @@
 
 *.txt
-/nnWeights
-/Data
+nnWeights
+Data
