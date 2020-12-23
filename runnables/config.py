@@ -25,6 +25,7 @@ class config(object):
         global userID
         global AuthToken
         global AccessCode
+        global prefScr
 
 
         confExists = pathlib.Path("config.txt").exists()
@@ -91,6 +92,13 @@ class config(object):
                 else:
                     AniListAccess.setAccessToken(AccessCode)
 
+                prefScr = file.readline()
+                print(prefScr)
+                print("here")
+                prefScr = prefScr.replace("Preferred Score Saving(avg, scaled, real, nn): ", "")
+                prefScr = prefScr.replace("\n", "")
+                print(prefScr)
+
 
                 #if userId is blank for some reason, then it is attempted to be found again
                 if(userID == "None"):
@@ -98,6 +106,9 @@ class config(object):
                     
                     config.rewriteConfig()
                 
+                if(prefScr == ""):
+                    prefScr = "real"
+                    config.rewriteConfig()
 
 
                 pass
@@ -123,6 +134,8 @@ class config(object):
                 file.write("ANILIST AccessCode: ")
                 file.write("\n")
 
+                file.write("Preferred Score Saving(avg, scaled, real, nn): nn")
+
                 file.seek(0)
                 print(file.readlines())
 
@@ -139,7 +152,7 @@ class config(object):
         global userID
         global AuthToken
         global AccessCode
-
+        global prefScr
 
         with open("config.txt", "w+") as file:
 
@@ -148,6 +161,7 @@ class config(object):
             file.write("ANILIST UserID: " + str(AniListAccess.getUserID()) + "\n")
             file.write("ANILIST AuthToken: " + str(AuthToken) + "\n")
             file.write("ANILIST AccessCode: " + str(AccessCode) + "\n")
+            file.write("Preferred Score Saving(avg, scaled, real, nn): " + str(prefScr) + "\n")
 
             print(userID)
 
@@ -165,3 +179,15 @@ class config(object):
 
     def getBaseSpeed():
         return baseSpeed
+
+    def getPrefScr():
+        global prefScr
+
+        if(prefScr == "avg"):
+            return "Average Score"
+        elif(prefScr == "scaled"):
+            return "Scaled Score"
+        elif(prefScr == "real"):
+            return "Real Score"
+        elif(prefScr == "nn"):
+            return "NN Score"

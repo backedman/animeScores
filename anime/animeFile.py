@@ -93,8 +93,9 @@ class animeFile:
         #Shows prompt for user
         self.userPrompt()
 
-        #writes to file
+        #writes to file and updates stats 
         self.writeToFile()
+
         
 
     def userPrompt(self):
@@ -124,6 +125,7 @@ class animeFile:
 
             elif(ans == "x" or ans == "X"):
                 self.writeToFile()
+                self.updateStats()
                 break;
         pass
 
@@ -183,6 +185,7 @@ class animeFile:
             self.epTotal = epTotal
 
             self.writeToFile()
+            self.updateStats()
 
 
         pass
@@ -364,7 +367,18 @@ class animeFile:
             if(ans == "1"):
                 self.changeStatus("WATCHING")
             elif(ans == "2"):
-                self.changeStatus("COMPLETED")
+                self.status = "COMPLETED"
+
+                print("     ")
+                print("     ")
+                print("     ")
+                print("You Finished! You need to give it an impact score now! (type -1 if you don't want to do this)")
+
+                self.impactScore = float(input())
+                self.calcNNScore()
+
+                self.updateStats()
+
             elif(ans == "3"):
                 self.changeStatus("PLANNING")
             elif(ans == "4"):
@@ -378,7 +392,7 @@ class animeFile:
 
         elif(ans == "3"):
             print("Type real score (1-10)")
-            self.realScore = int(input())
+            self.realScore = float(input())
 
         elif(ans == "4"):
             self.writeToFile()
@@ -423,14 +437,17 @@ class animeFile:
             json.dump(Data, json_file, indent = 4, ensure_ascii = True)
 
         pass
-
+    
     def updateStats(self):
         '''update stats of anime on website'''
 
         animeList.changeStatus(self.animeName, self.status)
         animeList.changeProgress(self.animeName, self.epCurrent)
-        animeList.changeScore(self.animeName, self.scaledScore)
+        if(self.nnScore == 0):
+            animeList.changeScore(self.animeName, self.scaledScore)
+        else:
+            animeList.changeScore(self.animeName, self.nnScore)
 
-pass
+        pass
     
 

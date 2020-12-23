@@ -81,6 +81,15 @@ class neuralNet(object):
         #if weights were saved previously, they are loaded
         if(os.path.exists(checkpoint_dir) and cont == True):
             model.load_weights(checkpoint_path)
+        elif(cont == False):
+            model = keras.Sequential(
+            [
+            layers.Dense(40, name="layer1", activation= "relu"),
+            layers.Dense(80, name="layer2", activation= "relu"),
+            layers.Dense(10, name="layer3", activation= "relu"),
+            layers.Dense(1, name = "layer4")
+            ]
+        )
 
         #compiles model
         model.compile(loss='mse', optimizer= 'adam')
@@ -121,6 +130,15 @@ class neuralNet(object):
         #if weights were saved previously, they are loaded
         if(os.path.exists(checkpoint_dir) and cont == True):
             modelNoImpact.load_weights(checkpoint_path)
+        elif(cont == False):
+            modelNoImpact = keras.Sequential(
+            [
+            layers.Dense(40, name="layer1", activation= "relu"),
+            layers.Dense(80, name="layer2", activation= "relu"),
+            layers.Dense(10, name="layer3", activation= "relu"),
+            layers.Dense(1, name = "layer4")
+            ]
+        )
 
         #compiles model
         modelNoImpact.compile(loss='mse', optimizer= 'adam')
@@ -136,6 +154,7 @@ class neuralNet(object):
 
         global model
 
+        stats = np.array(stats)
         stats = np.reshape(stats, (-1,5))
 
         return model.predict(stats)
@@ -144,6 +163,7 @@ class neuralNet(object):
 
         global modelNoImpact
 
+        stats = np.array(stats)
         stats = np.reshape(stats, (-1,4))
 
         return modelNoImpact.predict(stats)

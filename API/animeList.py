@@ -4,9 +4,12 @@ import json
 import webbrowser
 import time
 from API.AniListAccess import *
+from runnables.config import *
 from Algorithms.Sort import *
 from Algorithms.Search import *
 from Algorithms.valManip import *
+from neuralNetwork.compileData import *
+from neuralNetwork.neuralNet import *
 
 animeListPTW = []
 animeListCompleted = []
@@ -130,6 +133,7 @@ class animeList(object):
                 aniFileDir = Path + aniFileName
 
                 with open(aniFileDir, "r+") as json_file: #opens each files and reads them
+                    print(aniFileName)
                     aniFile = json.load(json_file)
                     animeName = aniFile['Info']['Anime Name']
                     aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
@@ -268,6 +272,7 @@ class animeList(object):
     def massUpdateScore():
 
       data = animeListAll['entries'] #accesses the necessary sub sets in list to be called throughout the rest of the method
+      prefScr = config.getPrefScr()
       
       for x in range(0, len(data)):
           #gets animeName, status, and score for comparison and updates
@@ -281,12 +286,48 @@ class animeList(object):
           if(exists):
             with open(Path, "r") as json_file:
                 contents = json.load(json_file)
-                fileScore = contents['Info']['Score']['Real Score']
+                fileScore = contents['Info']['Score'][prefScr]
 
                 if(fileScore != score and fileScore != 0): #if the score stored locally and the score from the account is not the same (and if there is a score available locally), the local score overrides account score
                     animeList.changeScore(animeName, fileScore)
 
+    def massUpdateNNScore():
 
+        data = compileData.getSets()
+        stats = data[0]
+        realScores = data[1]
+
+        predictions = neuralNet.predict(stats)
+
+
+        Path = valManip.getPath("COMPLETED")
+        files = os.listdir(Path)
+
+        x = 0
+
+        for aniFileName in files:
+
+            aniFileDir = Path + aniFileName
+
+            with open(aniFileDir, "r+") as json_file: #opens each files and reads them
+
+                contents = json.load(json_file)
+                realScore = contents['Info']['Score']['Real Score']
+
+                if(realScore == 0):
+                    continue;
+                else:
+                    contents['Info']['Score']['NN Score'] = valManip.round(predictions[x][0], 2)
+
+                    print(aniFileName + str(contents['Info']['Score']['NN Score']))
+            
+            with open(aniFileDir, "w+") as json_file:
+
+                json.dump(contents, json_file, indent = 4, ensure_ascii = True)
+
+            x += 1
+
+        
 
     def updateAll(animeName, status, epNumber, score):
         score = (float) (valManip.round(score, 2)) #converts score into something out of 100 instead of 10 (that is how it is used in anilist)

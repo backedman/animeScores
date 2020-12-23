@@ -174,8 +174,8 @@ def main():
 
             elif(ans == 2):
 
-                animeList.massUpdateScore() #updates all scores to real score
                 animeList.massUpdateNNScore() #updates the Neural Network scores in each file
+                animeList.massUpdateScore() #updates all scores to real score
 
             elif(ans == 3):
 

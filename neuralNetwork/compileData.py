@@ -24,13 +24,17 @@ class compileData(object):
 
                 aniFile = json.load(json_file)
 
-                #stats.append(fileName)
-                stats.append(compileData.getEpisodeCount(aniFile))
-                stats.append(compileData.getAvgScr(aniFile))
-                stats.append(compileData.getImpactScr(aniFile))
-                stats.append(compileData.getBaseSpeedDev(aniFile))
-                stats.append(compileData.getAvgEpDev(aniFile))
-                realScores.append(compileData.getRealScore(aniFile))
+                realScore = compileData.getRealScore(aniFile)
+
+                if realScore == 0:
+                    continue;
+                else:
+                    stats.append(compileData.getEpisodeCount(aniFile))
+                    stats.append(compileData.getAvgScr(aniFile))
+                    stats.append(compileData.getImpactScr(aniFile))
+                    stats.append(compileData.getBaseSpeedDev(aniFile))
+                    stats.append(compileData.getAvgEpDev(aniFile))
+                    realScores.append(realScore)
 
         stats = numpy.array(stats)
         stats = numpy.reshape(stats, (-1,5))
@@ -43,6 +47,42 @@ class compileData(object):
         return data
 
     def getSetsNoImpact():
+
+        #open all json files in the completed folder
+        Path = valManip.getPath("COMPLETED")
+        files = os.listdir(Path)
+
+        print(files)
+
+        stats = []
+        realScores = []
+
+        for fileName in files:
+
+            fileDir = Path + fileName
+
+            with open(fileDir, "r+") as json_file: #opens each files and reads them
+
+                aniFile = json.load(json_file)
+
+                #stats.append(fileName)
+                stats.append(compileData.getEpisodeCount(aniFile))
+                stats.append(compileData.getAvgScr(aniFile))
+                stats.append(compileData.getBaseSpeedDev(aniFile))
+                stats.append(compileData.getAvgEpDev(aniFile))
+                realScores.append(compileData.getRealScore(aniFile))
+
+        stats = numpy.array(stats)
+        stats = numpy.reshape(stats, (-1,4))
+        realScores = numpy.array(realScores)
+        realScores = numpy.reshape(realScores, (-1,1))
+        print(stats)
+
+        data = [stats, realScores]
+
+        return data
+
+    def getSetsAll():
 
         #open all json files in the completed folder
         Path = valManip.getPath("COMPLETED")
