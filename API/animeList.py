@@ -437,7 +437,7 @@ class animeList(object):
 
         for detAnime in detListComp:
 
-            scoreValue = detAnime['media']['mediaListEntry']['score'] - 6.5
+            scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
 
             for genres in detAnime['media']['genres']:
 
@@ -456,6 +456,8 @@ class animeList(object):
                 tagRank =  tags['rank']
                 tagTitle = tags['name']
                 tagValue = scoreValue * tagRank/100
+             
+                print(detAnime['media']['title']['userPreferred'] + ":               " + str(tagTitle) + "            " + str(tagValue) + "             " + str(tagRank))
 
                 if tagTitle not in tagListStat:
                     tagListStat[tagTitle] = tagValue
@@ -464,18 +466,19 @@ class animeList(object):
                     tagListStat[tagTitle] += tagValue
                     tagListCount[tagTitle] += 1
 
+
         for genres in genreListStat: #applies variability equation to the genre scores
             if(genreListStat[genres] >= 0):
-                genreListStat[genres] = (genreListStat[genres]/genreListCount[genres]) + 1
+                genreListStat[genres] = (genreListStat[genres]/math.pow(genreListCount[genres],  1/1.008) + 1)
             else:
-                genreListStat[genres] = 1/((abs(genreListStat[genres]/genreListCount[genres] - 1)))
+                genreListStat[genres] = 1/((abs(genreListStat[genres]/math.pow(genreListCount[genres],  1/1.008) - 1)))
 
         for tags in tagListStat:
             if(tagListStat[tags] >= 0):
-                tagListStat[tags] = math.sqrt(tagListStat[tags]/tagListCount[tags]) + 1
+                tagListStat[tags] = math.sqrt(tagListStat[tags]/math.pow(tagListCount[tags], 1/1.008)) + 1
             else:
                 print(tags)
-                tagListStat[tags] = 1/(math.sqrt(abs(tagListStat[tags]/tagListCount[tags])) + 1)
+                tagListStat[tags] = 1/(math.sqrt(abs(tagListStat[tags]/math.pow(tagListCount[tags],  1/1.008))) + 1)
         
         print(genreListStat)
         print(tagListStat)
@@ -484,44 +487,38 @@ class animeList(object):
         for anime in detListPTW:
             #print(anime)
             animeMultiplier = 1
-            animeMultiplierLater = 1
+            animeMultiplierTags = 1
+            animeMultiplierTagsLater = 1
             animeScore = anime['media']['averageScore']
 
             if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
+                for genres in anime['media']['genres']:
+
+                    if genres in genreListStat:
+                        animeMultiplier *= genreListStat[genres]
+                
                 for tags in anime['media']['tags']:
                     tagTitle = tags['name']
                     
                     if tagTitle in tagListStat:
                         if(tagListStat[tagTitle] >= 1):
-                            animeMultiplier += tagListStat[tagTitle]/40
+                            animeScore += tagListStat[tagTitle]/5
                         else:
-                            animeMultiplierLater += tagListStat[tagTitle]
+                            animeScore -= 1/(tagListStat[tagTitle]*5)
                 
-                animeMultiplier /= animeMultiplierLater
-                animeMultiplier = math.sqrt(animeMultiplier)
+                animeMultiplierTags /= animeMultiplierTagsLater
+                animeMultiplier = animeMultiplier * animeMultiplierTags
 
-                for genres in anime['media']['genres']:
-
-                    if genres in genreListStat:
-                        animeMultiplier *= math.sqrt(genreListStat[genres])
-
-                if(animeMultiplier >= 1.3):
+                if(animeMultiplier >= 1):
                     animeMultiplier = math.pow(animeMultiplier, 1/3)
 
-                
-
-
-                print("      name: " + str(anime['media']['title']['userPreferred']))
-                print("genres" + str(anime['media']['genres']))
-                #print("tags" + str(anime['media']['tags']))
-                print("animeScore: " + str(animeScore))
-                #print(genreListStat)
-                print("animeMultiplier: " + str(animeMultiplier))
-                animeValue = animeMultiplier * anime['media']['averageScore']
+               
+                animeValue = animeMultiplier * animeScore
             
                 listRec[anime['media']['title']['userPreferred']] = animeValue
-
+        print(tagListStat)
+        print(genreListStat)
         sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 
         for x in range(0,len(sortedRec)):
