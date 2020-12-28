@@ -31,7 +31,6 @@ class animeFile:
     """makes anime file and data that will go in there"""
     def __init__(self, animeName, status):
         Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
-        print(Path)
         
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
@@ -49,7 +48,7 @@ class animeFile:
             Data['Info'] = {'Anime Name' : animeName,
                         'Status' : status,
                         'Episode Count' : {
-                                'Current' : 1,
+                                'Current' : 0,
                                 'Total' : aniData["episodes"]
                             },
                         'Base Speed' : config.getBaseSpeed(),
@@ -176,6 +175,7 @@ class animeFile:
 
             #updates episode count
             animeList.changeProgress(animeName, epCurrent)
+            self.updateScores()
 
             #updates data list in instance
             self.Data = Data
@@ -185,7 +185,6 @@ class animeFile:
             self.epTotal = epTotal
 
             self.writeToFile()
-            self.updateStats()
 
 
         pass
@@ -256,7 +255,6 @@ class animeFile:
             total += epRating
 
         #averages score
-        print(epCurrent)
         score = total/epCurrent
             
         #saves score
@@ -329,14 +327,17 @@ class animeFile:
             stats = numpy.reshape(stats, (-1, 4))
             prediction = neuralNet.predictNoImpact(stats)
 
-            print("here")
-
         
 
         self.nnScore = prediction
 
         return prediction
+    
+    def updateScores(self):
 
+        self.avgScore = self.calcAvgScore()
+        self.nnScore = self.calcNNScore()
+        self.scaledScore = self.calcScaledScore()
 
     def Settings(self):
         '''Offers setting menu'''
@@ -365,7 +366,8 @@ class animeFile:
 
             #status is based on user input
             if(ans == "1"):
-                self.changeStatus("WATCHING")
+                self.changeStatus("CURRENT")
+
             elif(ans == "2"):
                 self.status = "COMPLETED"
 

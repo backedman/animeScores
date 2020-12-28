@@ -11,7 +11,6 @@ class compileData(object):
         Path = valManip.getPath("COMPLETED")
         files = os.listdir(Path)
 
-        print(files)
 
         stats = []
         realScores = []
@@ -40,7 +39,6 @@ class compileData(object):
         stats = numpy.reshape(stats, (-1,5))
         realScores = numpy.array(realScores)
         realScores = numpy.reshape(realScores, (-1,1))
-        print(stats)
 
         data = [stats, realScores]
 
@@ -52,8 +50,6 @@ class compileData(object):
         Path = valManip.getPath("COMPLETED")
         files = os.listdir(Path)
 
-        print(files)
-
         stats = []
         realScores = []
 
@@ -76,7 +72,6 @@ class compileData(object):
         stats = numpy.reshape(stats, (-1,4))
         realScores = numpy.array(realScores)
         realScores = numpy.reshape(realScores, (-1,1))
-        print(stats)
 
         data = [stats, realScores]
 
@@ -88,8 +83,6 @@ class compileData(object):
         Path = valManip.getPath("COMPLETED")
         files = os.listdir(Path)
 
-        print(files)
-
         stats = []
         realScores = []
 
@@ -112,7 +105,6 @@ class compileData(object):
         stats = numpy.reshape(stats, (-1,4))
         realScores = numpy.array(realScores)
         realScores = numpy.reshape(realScores, (-1,1))
-        print(stats)
 
         data = [stats, realScores]
 

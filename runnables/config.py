@@ -93,11 +93,8 @@ class config(object):
                     AniListAccess.setAccessToken(AccessCode)
 
                 prefScr = file.readline()
-                print(prefScr)
-                print("here")
                 prefScr = prefScr.replace("Preferred Score Saving(avg, scaled, real, nn): ", "")
                 prefScr = prefScr.replace("\n", "")
-                print(prefScr)
 
 
                 #if userId is blank for some reason, then it is attempted to be found again
@@ -137,7 +134,6 @@ class config(object):
                 file.write("Preferred Score Saving(avg, scaled, real, nn): nn")
 
                 file.seek(0)
-                print(file.readlines())
 
                 input("Press Enter to Exit")
 
@@ -162,8 +158,6 @@ class config(object):
             file.write("ANILIST AuthToken: " + str(AuthToken) + "\n")
             file.write("ANILIST AccessCode: " + str(AccessCode) + "\n")
             file.write("Preferred Score Saving(avg, scaled, real, nn): " + str(prefScr) + "\n")
-
-            print(userID)
 
         pass
 

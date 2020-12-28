@@ -1,4 +1,4 @@
-# imports
+#imports
 import pathlib
 import requests
 import json
@@ -15,7 +15,7 @@ from neuralNetwork.neuralNet import *
 
 
 def main():
-    # initialize variables
+     #initialize variables
     speedChangeable = False
     baseSpeed = 1.0
     AuthToken = ""
@@ -23,10 +23,13 @@ def main():
     status = "CURRENT"
 
 
-    # updates or creates information from config
+     #updates or creates information from config
     config.readConfig()
     speedChangeable = config.getSpeedChangeable()
     baseSpeed = config.getBaseSpeed()
+
+   
+    
 
     # gets the most up to date user's anime list from website
     aniList = animeList.updateAniListAnimeList()
@@ -37,12 +40,14 @@ def main():
     neuralNet.initialize()
 
     # set current page number and maximum page number (each page has 9)
-    maxPage = int((len(titleList) / 9 + 1.5))
     page = 1
 
     # program continues until user wants to exit
     while (True):
         addSpacing()
+
+        maxPage = int((len(titleList) / 9 + 1.5))
+
 
         print("Page " + str(page) + "/" + str(maxPage))
         # shows anime in page
@@ -59,6 +64,7 @@ def main():
         print("E. Next Page")
         print("A. Choose Page")
         print("S. Search")
+        print("F. Find Reccomendation")
         print("O. Options")
         print("X. Exit Program ")
         ans = input()
@@ -130,7 +136,9 @@ def main():
 
                     aniShow = animeFile(animeName, status)
 
-
+        elif (ans == "F" or ans == "f"):
+            titleList = animeList.findReccomended()
+           
 
 
         # opens options menu
@@ -272,4 +280,4 @@ def addSpacing():
 if __name__ == '__main__':
     mainThread = threading.Thread(target = main())
 
-    mainThread.start()
+    mainThread.start() 
