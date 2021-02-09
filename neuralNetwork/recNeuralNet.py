@@ -22,7 +22,8 @@ class recNeuralNet:
         inputs = keras.Input(shape=(316,))
         x = layers.Dense(80, name="layer1", activation= "relu")(inputs)
         x = layers.Dense(360, name="layer2", activation= "relu")(x)
-        x = layers.Dense(30, name="layer3", activation= "relu")(x)
+        x = layers.Dense(150, name="layer3", activation= "relu")(x)
+        x = layers.Dense(50, name="layer4", activation= "relu")(x)
         output = layers.Dense(1, name="predictions", activation= "relu")(x)
 
 
@@ -63,7 +64,7 @@ class recNeuralNet:
                                                  save_freq= 100*32,
                                                  verbose=1
                                                  ),
-                       tf.keras.callbacks.EarlyStopping(monitor = 'loss', min_delta = 0.001, patience = 100)]
+                       tf.keras.callbacks.EarlyStopping(monitor = 'loss', min_delta = 0.001, patience = 500)]
 
         model.compile(loss='mse', optimizer= 'adam')
         
