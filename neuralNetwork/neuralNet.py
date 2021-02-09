@@ -143,8 +143,7 @@ class neuralNet(object):
 
         #pretty much has neural network try to link stats with real score
         modelNoImpact.fit(stats, realScores, epochs = iterations, callbacks = [cp_callback])
-
-
+         
 
 
     def predict(stats):

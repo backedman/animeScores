@@ -1,4 +1,3 @@
-#imports
 import pathlib
 import requests
 import json
@@ -10,12 +9,13 @@ from API.AniListAccess import *
 from API.animeList import *
 from runnables.config import *
 from anime.animeFile import *
+from neuralNetwork.recNeuralNet import *
 from Algorithms.Search import *
 from neuralNetwork.neuralNet import *
 
 
 def main():
-     #initialize variables
+   #initialize variables
     speedChangeable = False
     baseSpeed = 1.0
     AuthToken = ""
@@ -23,7 +23,7 @@ def main():
     status = "CURRENT"
 
 
-     #updates or creates information from config
+   #updates or creates information from config
     config.readConfig()
     speedChangeable = config.getSpeedChangeable()
     baseSpeed = config.getBaseSpeed()
@@ -31,10 +31,11 @@ def main():
    
     
 
-    # gets the most up to date user's anime list from website
+  #gets the most up to date user's anime list from website
     aniList = animeList.updateAniListAnimeList()
     animeList.updateFiles()
     titleList = animeList.getTitleList(status)
+        
 
     #initializes neuralNetwork
     neuralNet.initialize()
@@ -148,6 +149,8 @@ def main():
             print("1. Open another list")
             print("2. Mass update scores")
             print("3. Neural Network")
+            print("4. predict score of anime (using the recommendations algorithm)")
+
             ans = int(input())
 
             if(ans == 1): #user changes between different list types (current, completed, planning, etc.)
@@ -196,6 +199,7 @@ def main():
                 runImpact = False
                 runWithout = False
 
+                #sets conditional for if the neural network should access impact nn, no impact nn, or both
                 if(ans == 1):
                     runImpact = True
 
@@ -205,40 +209,121 @@ def main():
                 elif(ans == 3):
                     runImpact = True
                     runWithout = True
-
-
-                print("1. run for 1000 iterations")
-                print("2. run for 10000 iterations")
-                print("3. run for a custom amount of iterations")
-                print("4. recalculate (starts from scratch)")
-                print("X. back")
-
-                ans = int(input())
-
-                if(ans == 1):
-                    iterations = 1000
-                    cont = True
-
-                elif(ans == 2):
-                    iterations = 10000
-                    cont = True
-
-                elif(ans == 3):
-                    print("How many iterations?")
-                    iterations = int(input())
-                    cont = True
-
-                elif(ans == 4):
-                    iterations = 10000
-                    cont = False
-
-                if(runImpact):
-                    neuralNet.train(iterations, cont)
-                if(runWithout):
-                    neuralNet.trainNoImpact(iterations, cont)
-
-
                 
+                    #provides user with options on how to interact with nn
+                if(ans == 1 or ans == 2 or ans == 3):
+                    print("1. run for 1000 iterations")
+                    print("2. run for 10000 iterations")
+                    print("3. run for a custom amount of iterations")
+                    print("4. recalculate (starts from scratch)")
+                    print("5. manually test neural network")
+                    print("X. back")
+
+                    ans = int(input())
+
+                    if(ans == 1):
+                        iterations = 1000
+                        cont = True #runs nn from where it left off before
+
+                    elif(ans == 2):
+                        iterations = 10000
+                        cont = True
+
+                    elif(ans == 3):
+                        print("How many iterations?")
+                        iterations = int(input())
+                        cont = True
+
+                    elif(ans == 4):
+                        iterations = 10000
+                        cont = False #starts nn from scratch
+
+                    elif(ans == 5): #user enters values manually to see how it impacts nn. For transperency and testing purposes
+                        while(True):
+                            print("ep Count")
+                            epCount = int(input())
+                            print("avg Score")
+                            avgScore = float(input())
+                            print("impactScore")
+                            impactScore = float(input())
+                            print("speed dev")
+                            baseSpeedDev = float(input())
+                            print("ep Dev")
+                            epScoreDev = float(input())
+
+                            if(runImpact):
+                                stats = numpy.array([epCount, avgScore, impactScore, baseSpeedDev, epScoreDev])
+                                stats = numpy.reshape(stats, (-1, 5))
+                                prediction = neuralNet.predict(stats)
+
+                                print("nnScore: " + str(prediction))
+
+                            if(runWithout):
+                                stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
+                                stats = numpy.reshape(stats, (-1, 4))
+                                print("here")
+                                prediction = neuralNet.predictNoImpact(stats)
+
+                                print("nnScorenoImpact: " + str(prediction))
+
+                            print("press x to leave. Press any other button to continue")
+                            if(input() == "x"):
+                                break
+
+                    if(runImpact):
+                        neuralNet.train(iterations, cont)
+                    if(runWithout):
+                        neuralNet.trainNoImpact(iterations, cont)
+              
+
+
+            elif(ans == 4):
+                 
+                 nnRec = recNeuralNet()
+                 
+                 while (True):
+                    
+                    #allows user to search for anime based on input
+                    addSpacing()
+                    print("Name of anime to search")
+                    animeSearch = input()
+                    listResults = animeList.getAnimeSearchList(animeSearch, 10)['media']
+
+                    sPage = 1
+                    sMaxPage = int(len(listResults) / 9 + 1.5)
+
+                    #shows anime results from search
+                    print("Page " + str(sPage) + "/" + str(sMaxPage))
+                    for x in range(1, 10):
+                        if (x <= len(listResults) - (sPage - 1) * 9):
+                            listIndex = x - 1 + (sPage - 1) * 9
+                            listAnime = listResults[listIndex]['title']['userPreferred']
+                            print(str(x) + "." + str(listAnime))
+
+                    ans = str(input()) #gets user input
+
+                    listIndex = int(ans) - 1 + (sPage - 1) * 9
+                    animeName = listResults[listIndex]['title']['userPreferred']
+
+                    anime = animeList.getAnimeDetailed(animeName) #gets detailed information from the anime the user chose
+
+                    print(anime)
+
+                    genres = anime['genres']
+                    tags = anime['tags']
+                    tagRank = [0] * len(tags)
+
+                    for x in range(len(tags)): #assigns ranks from the API to the tags, as well as remove the "name" modifier from the tags to make it compareable to the genre list
+                        tagRank[x] = tags[x]['rank']
+                        tags[x] = tags[x]['name']
+                
+
+                    genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank) #gets the binary representation for the genres and tags
+                    averageScore = anime['averageScore']
+
+                    animeValue = nnRec.predict(genreTagBinary, averageScore) #predicts score of anime
+
+                    print(animeName + ": " + str(animeValue)) #prints score of anime to user
 
 
 
@@ -255,7 +340,7 @@ def main():
 
             aniShow = animeFile(animeName, status)
             
-    pass
+        pass
 
 def addSpacing():
     print("       ")

@@ -173,6 +173,10 @@ class animeFile:
             dataToAppend = {('Episode ' + str(epCurrent)) : {'Score' : str(epScore) , 'Speed' : str(epSpeed)}}
             Data['Episodes'].append(dataToAppend)
 
+            #updates values in instance
+            self.epCurrent = epCurrent
+            self.epTotal = epTotal
+
             #updates episode count
             animeList.changeProgress(animeName, epCurrent)
             self.updateScores()
@@ -180,9 +184,7 @@ class animeFile:
             #updates data list in instance
             self.Data = Data
         
-            #updates values in instance
-            self.epCurrent = epCurrent
-            self.epTotal = epTotal
+
 
             self.writeToFile()
 
@@ -274,13 +276,20 @@ class animeFile:
         for x in range(1, epCurrent + 1): #adds up the difference between the episode's score and the average score for all episodes
 
             epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
-            totalDev += abs(avgScore - epRating)
+            totalDev += (avgScore - epRating) ** 2
 
-        avgDev = totalDev/epCurrent #gets the average of the differences between the episode's score and average score
+        try:
+            avgDev = totalDev/(epCurrent - 1) #gets the average of the differences between the episode's score and average score
 
-        avgDev = valManip.round(avgDev, 4)
+            avgDev = valManip.round(avgDev, 4)
 
-        return avgDev
+            print("avg dev: " + str(avgDev))
+
+            return avgDev
+        
+        except ZeroDivisionError:
+            return 0;
+
 
     def getAvgSpeedDeviation(self):
         '''returns the average deviation of speed from the base speed for the anime'''
@@ -294,11 +303,13 @@ class animeFile:
         for x in range(1, epCurrent + 1): #adds up the differences between the episode's speed and the base speed for all episodes
 
             speed = Data['Episodes'][x-1]['Episode ' + (str)(x)]['Speed']
-            totalDev += baseSpeed - float(speed)
+            totalDev += float(speed) - baseSpeed
 
         avgDev = totalDev/epCurrent
 
         avgDev = valManip.round(avgDev, 4)
+
+        print("speed dev: " + str(avgDev))
 
         return avgDev
 
@@ -312,8 +323,7 @@ class animeFile:
         baseSpeedDev = self.getAvgSpeedDeviation()
         epScoreDev = self.getAvgEpDeviation()
 
-        if((self.status != "COMPLETED") and (epCount < 12)):
-            epCount = 12
+        print("epCount: " + str(epCount))
 
         #gets the nn score prediction
         if(impactScore != -1): #if show has impact rating use this version
@@ -325,6 +335,7 @@ class animeFile:
         else: #if show does not have impact rating use this version
             stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
             stats = numpy.reshape(stats, (-1, 4))
+            print("here")
             prediction = neuralNet.predictNoImpact(stats)
 
         
@@ -443,9 +454,10 @@ class animeFile:
     def updateStats(self):
         '''update stats of anime on website'''
 
-        animeList.changeStatus(self.animeName, self.status)
-        animeList.changeProgress(self.animeName, self.epCurrent)
-        if(self.nnScore == 0):
+        animeList.changeStatus(self.animeName, self.status) #updates status on website
+        animeList.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
+
+        if(self.nnScore == 0 or self.status != "COMPLETED"): #updates score on website (scaled score is used if not completed. NN score if it is)
             animeList.changeScore(self.animeName, self.scaledScore)
         else:
             animeList.changeScore(self.animeName, self.nnScore)

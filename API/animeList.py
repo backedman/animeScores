@@ -4,13 +4,15 @@ import json
 import webbrowser
 import time
 import operator
+from main import addSpacing
 from API.AniListAccess import *
 from runnables.config import *
 from Algorithms.Sort import *
 from Algorithms.Search import *
 from Algorithms.valManip import *
-from neuralNetwork.compileData import *
-from neuralNetwork.neuralNet import *
+#from neuralNetwork.compileData import *
+#from neuralNetwork.neuralNet import *
+from neuralNetwork.recNeuralNet import *
 
 animeListPTW = []
 animeListCompleted = []
@@ -21,6 +23,7 @@ animeListCurrent = []
 animeListAll = []
 listAll = []
 statusTypes = []
+genreTags = []
 
 class animeList(object):
 
@@ -194,7 +197,6 @@ class animeList(object):
                     aniFile = json.load(json_file)
                     animeName = aniFile['Info']['Anime Name']
                     aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
-                    aniFileStatus = aniFile['Info']['Status']
 
                     try:
                         aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
@@ -202,7 +204,7 @@ class animeList(object):
                     except TypeError: #if the anime from file cannot be found in the data brought in from the api, it throws an error message to check for later
                         print("ERROR COULD NOT FIND " + animeName)
 
-                if(aniFileStatus != aniListStatus):
+                if(status != aniListStatus):
 
                     aniFile['Info']['Status'] = aniListStatus #changes status listed in file
 
@@ -417,10 +419,10 @@ class animeList(object):
 
         pass
 
+
     def findReccomended():
         animeListDet = animeList.updateAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
 
-        #print(animeListDet)
         
         for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
             if(animeListDet[status]['status'] == "COMPLETED"):
@@ -428,104 +430,111 @@ class animeList(object):
             elif(animeListDet[status]['status'] == "PLANNING"):
                 detListPTW = animeListDet[status]['entries']
 
-        #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
-        genreListStat = {}
-        genreListCount = {}
-
-        tagListStat = {}
-        tagListCount = {}
-
+        nnRec = recNeuralNet()
+        
+        #iterates through each anime in the Completed List
+        x = 0
         for detAnime in detListComp:
 
-            scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
-
-            for genres in detAnime['media']['genres']:
-
-                genreValue = scoreValue
-
-                if genres not in genreListStat:
-                    genreListStat.setdefault(genres, genreValue)
-                    genreListCount.setdefault(genres, 1)
-                else:
-                    oldGenreVal = genreListStat.get(genres)
-                    genreListStat[genres] = oldGenreVal + genreValue
-                    genreListCount[genres] += 1
-
-            for tags in detAnime['media']['tags']:
-
-                tagRank =  tags['rank']
-                tagTitle = tags['name']
-                tagValue = scoreValue * tagRank/100
-             
-                print(detAnime['media']['title']['userPreferred'] + ":               " + str(tagTitle) + "            " + str(tagValue) + "             " + str(tagRank))
-
-                if tagTitle not in tagListStat:
-                    tagListStat[tagTitle] = tagValue
-                    tagListCount[tagTitle] = 1
-                else:
-                    tagListStat[tagTitle] += tagValue
-                    tagListCount[tagTitle] += 1
-
-
-        for genres in genreListStat: #applies variability equation to the genre scores
-            if(genreListStat[genres] >= 0):
-                genreListStat[genres] = (genreListStat[genres]/math.pow(genreListCount[genres],  1/1.008) + 1)
-            else:
-                genreListStat[genres] = 1/((abs(genreListStat[genres]/math.pow(genreListCount[genres],  1/1.008) - 1)))
-
-        for tags in tagListStat:
-            if(tagListStat[tags] >= 0):
-                tagListStat[tags] = math.sqrt(tagListStat[tags]/math.pow(tagListCount[tags], 1/1.008)) + 1
-            else:
-                print(tags)
-                tagListStat[tags] = 1/(math.sqrt(abs(tagListStat[tags]/math.pow(tagListCount[tags],  1/1.008))) + 1)
-        
-        print(genreListStat)
-        print(tagListStat)
-        #looks through the Planning list and uses the genres as multipliers to find the closest anime
-        listRec = {}
-        for anime in detListPTW:
-            #print(anime)
-            animeMultiplier = 1
-            animeMultiplierTags = 1
-            animeMultiplierTagsLater = 1
-            animeScore = anime['media']['averageScore']
-
-            if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
-
-                for genres in anime['media']['genres']:
-
-                    if genres in genreListStat:
-                        animeMultiplier *= genreListStat[genres]
-                
-                for tags in anime['media']['tags']:
-                    tagTitle = tags['name']
-                    
-                    if tagTitle in tagListStat:
-                        if(tagListStat[tagTitle] >= 1):
-                            animeScore += tagListStat[tagTitle]/5
-                        else:
-                            animeScore -= 1/(tagListStat[tagTitle]*5)
-                
-                animeMultiplierTags /= animeMultiplierTagsLater
-                animeMultiplier = animeMultiplier * animeMultiplierTags
-
-                if(animeMultiplier >= 1):
-                    animeMultiplier = math.pow(animeMultiplier, 1/3)
-
-               
-                animeValue = animeMultiplier * animeScore
+            #stores the genres and tags in a list
+            genres = detAnime['media']['genres']
+            tags = detAnime['media']['tags']
+            tagRank = [0] * len(tags)
             
-                listRec[anime['media']['title']['userPreferred']] = animeValue
-        print(tagListStat)
-        print(genreListStat)
-        sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 
-        for x in range(0,len(sortedRec)):
-            print(sortedRec[x][0] + ": " + str(sortedRec[x][1]))
+            #converts the tag's list of set of names to just a list of the names to make it identical in structure to the genres list
+            for x in range(len(tags)):
+                tagRank[x] = tags[x]['rank']
+                tags[x] = tags[x]['name']
+                
+
+            genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank)
+
+            userScore = detAnime['media']['mediaListEntry']['score']
+            averageScore = detAnime['media']['averageScore']
+
+            x+=1
+
+            nnRec.add(genreTagBinary, averageScore, userScore)
+
+        nnRec.train()
+
+        listRec = {} #animeName and their corresponding values will be stored here
+        current = 0 #for the loading bar
+        total = len(detListPTW) #for loading bar
+
+        for anime in detListPTW:
+
+            current += 1
+
+            #loading bar
+            percentage = valManip.round(float(current)/total * 100, 1)
+
+            for __ in range(40):
+                print("")
+
+            print("[" + "x" * int(percentage / 5) + "-" * int(20 - percentage/5) + "]")
+            print(str(percentage) + "%")
+
+
+            #initializes genre and tag variables of the anime
+            genres = anime['media']['genres']
+            tags = anime['media']['tags']
+            tagRank = [0] * len(tags)
+
+            for x in range(len(tags)):
+                tagRank[x] = tags[x]['rank']
+                tags[x] = tags[x]['name']
+                
+
+            genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank) #gets binary representation of genres and tags
+            averageScore = detAnime['media']['averageScore']
+
+            animeValue = nnRec.predict(genreTagBinary, averageScore) #gets the score assigned to anime from the neural network (higher = better)
+            
+            listRec[anime['media']['title']['userPreferred']] = animeValue 
+
+
+        sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
+
+        for x in range(0,len(sortedRec)): #puts the list in a presentable format
             sortedRec[x] = sortedRec[x][0]
 
         return sortedRec
+
+    def findGenreTagBinary(genreList, tagList, tagRank):
+        global genreTags
+
+        #if the getAllGenreTags method hasn't been called yet, it is called and the genreTags information is stored in memory
+
+        if(genreTags == []):
+            genreTags = animeList.getAllGenreTags()
+        
+        #creates a list for all genres, all tags, genre binary, and tag binary
+        allGenres = genreTags[0]
+        allTags = genreTags[1]
+        genreBinary = [0] * len(allGenres)
+        tagBinary = [0] * len(allTags) 
+
+
+        #assigns 1 for each existing coressponding genre index
+        for genre in genreList:
+            index = allGenres.index(genre)
+
+            if(index > -1):
+                genreBinary[index] = 1
+        
+        #assigns tagRank/100 for each coressponding tag index
+        for tag in range(len(tagList)):
+            index = allTags.index(tagList[tag])
+
+
+            if(index > -1):
+                tagBinary[index] = (tagRank[tag]/100)
+
+        genreTagBinary = [genreBinary, tagBinary]
+
+        return genreTagBinary
 #
 #                                below are all the get methods
 #
@@ -588,13 +597,14 @@ class animeList(object):
         #sets query and variables to get anime from API
         query = '''
             query($animeName : String) {
-                Media(search : $animeName)
+                Media(search : $animeName, type: ANIME)
                 {
                     title{
                         userPreferred
                     }
                     tags{
                         name
+                        rank
                     }
                     episodes
                     genres
@@ -617,7 +627,7 @@ class animeList(object):
         '''gets first search result of anime search'''
         query = '''
             query($animeName : String) {
-                Media(search : $animeName)
+                Media(search : $animeName, type: ANIME)
                 {
                     title{
                         userPreferred
@@ -652,7 +662,7 @@ class animeList(object):
         query = '''
             query ($animeName: String, $perPage: Int)  {
             Page(perPage : $perPage){
-  	                media(search : $animeName)
+  	                media(search : $animeName, type : ANIME)
                     {
                         title{
                             userPreferred
@@ -671,6 +681,37 @@ class animeList(object):
         #returns anime results list
         animeData = (AniListAccess.getData(query,variables))['data']['Page']
         return animeData
+
+    def getAllGenreTags():
+        '''returns all possible genres and tags available on anilist. Index 0 contains genres and Index 1 contains tags'''
+        global genreTags
+
+        query = '''
+            {
+                GenreCollection
+                MediaTagCollection{
+                    name
+                }
+            }
+        '''
+
+        variables = {
+            }
+
+        #returns anime results list
+        animeData = (AniListAccess.getData(query,variables)['data'])
+
+        #splits tags and genres into seperate lists
+        genre = animeData['GenreCollection']
+        tags = animeData['MediaTagCollection']
+
+        #removes the 'name' portion in the list to make it identical to the genre list
+        for x in range(0, len(tags)):
+            tags[x] = tags[x]['name']                   
+
+        genreTags = [genre, tags]
+
+        return genreTags
 
 
 

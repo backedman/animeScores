@@ -36,6 +36,9 @@ class compileData(object):
                     realScores.append(realScore)
 
         stats = numpy.array(stats)
+
+        print(stats)
+
         stats = numpy.reshape(stats, (-1,5))
         realScores = numpy.array(realScores)
         realScores = numpy.reshape(realScores, (-1,1))
@@ -157,10 +160,13 @@ class compileData(object):
         for x in range(0, len(aniFile['Episodes'])):
 
             score = aniFile['Episodes'][x]['Episode ' + (str)(x + 1)]['Score']
-            totalDev += abs(epAvg - float(score))
+            totalDev += (epAvg - float(score)) ** 2
 
-        avgDev = totalDev/len(aniFile['Episodes'])
+        try:
+            avgDev = totalDev/(len(aniFile['Episodes']) - 1)
+            avgDev = valManip.round(avgDev, 4)
 
-        avgDev = valManip.round(avgDev, 4)
+            return avgDev
 
-        return avgDev
+        except ZeroDivisionError:
+            return 0

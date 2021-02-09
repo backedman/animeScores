@@ -59,6 +59,9 @@
     <Compile Include="neuralNetwork\neuralNet.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="neuralNetwork\recNeuralNet.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runnables\config.py">
       <SubType>Code</SubType>
     </Compile>
