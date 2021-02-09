@@ -444,6 +444,7 @@ class animeFile:
         Data['Info']['Score']['Scaled Score'] = valManip.round(self.scaledScore, 2)
         Data['Info']['Score']['NN Score'] = valManip.round(self.nnScore, 2)
         Data['Info']['Score']['Real Score'] = self.realScore
+        Data['Info']['Impact Rating'] = self.impactScore
 
         #writes to file
         with open(Path, "w+") as json_file:
