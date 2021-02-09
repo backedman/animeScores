@@ -19,9 +19,9 @@ class recNeuralNet:
         checkpoint_dir = os.path.dirname(checkpoint_path) 
 
         #creates the neural network with the layers
-        inputs = keras.Input(shape=(314,))
+        inputs = keras.Input(shape=(316,))
         x = layers.Dense(80, name="layer1", activation= "relu")(inputs)
-        x = layers.Dense(320, name="layer2", activation= "relu")(x)
+        x = layers.Dense(360, name="layer2", activation= "relu")(x)
         x = layers.Dense(30, name="layer3", activation= "relu")(x)
         output = layers.Dense(1, name="predictions", activation= "relu")(x)
 
@@ -49,7 +49,7 @@ class recNeuralNet:
         global model, data, goal
 
         self.data = np.array(self.data)
-        self.data = np.reshape(self.data, (-1,314))
+        self.data = np.reshape(self.data, (-1,316))
         self.goal = np.array(self.goal)
         self.goal = np.reshape(self.goal, (-1,1))
 
@@ -63,7 +63,7 @@ class recNeuralNet:
                                                  save_freq= 100*32,
                                                  verbose=1
                                                  ),
-                       tf.keras.callbacks.EarlyStopping(monitor = 'loss', min_delta = 0.01, patience = 5)]
+                       tf.keras.callbacks.EarlyStopping(monitor = 'loss', min_delta = 0.001, patience = 100)]
 
         model.compile(loss='mse', optimizer= 'adam')
         
@@ -83,7 +83,7 @@ class recNeuralNet:
         testData.append(averageScore)
 
         testData = np.array(testData)
-        testData = np.reshape(testData, (-1,314))
+        testData = np.reshape(testData, (-1,316))
 
         animeValue = model.predict(testData)
 

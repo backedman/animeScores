@@ -455,6 +455,8 @@ class animeList(object):
 
             x+=1
 
+            print(len(genreTagBinary[0]) + 1 + len(genreTagBinary[1]))
+
             nnRec.add(genreTagBinary, averageScore, userScore)
 
         nnRec.train()
