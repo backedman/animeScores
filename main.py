@@ -138,7 +138,15 @@ def main():
                     aniShow = animeFile(animeName, status)
 
         elif (ans == "F" or ans == "f"):
-            titleList = animeList.findReccomended()
+            print("1. Normal")
+            print("2. Experimental (not recommended)")
+
+            ans = input()
+
+            if(ans == "1"):
+                titleList = animeList.findReccomendedLegacy()
+            elif(ans == "2"):
+                titleList = animeList.findReccomended()
            
 
 

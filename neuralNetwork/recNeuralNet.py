@@ -14,10 +14,6 @@ class recNeuralNet:
     def __init__(self):
         global model
 
-        #where the weights are stored
-        checkpoint_path = "nnWeights/Reccomendations/cp.ckpt"
-        checkpoint_dir = os.path.dirname(checkpoint_path) 
-
         #creates the neural network with the layers
         inputs = keras.Input(shape=(316,))
         x = layers.Dense(80, name="layer1", activation= "relu")(inputs)
@@ -28,9 +24,6 @@ class recNeuralNet:
 
 
         model = keras.Model(inputs = inputs, outputs = output)
-
-        if(os.path.exists(checkpoint_dir)):
-            model.load_weights(checkpoint_path)
 
     def add(self, genreTags, averageScore, userScore):
         '''appends the genre, tags, and score from the anime into the data'''
@@ -54,21 +47,9 @@ class recNeuralNet:
         self.goal = np.array(self.goal)
         self.goal = np.reshape(self.goal, (-1,1))
 
-        #where the weights are stored
-        checkpoint_path = "nnWeights/Reccomendations/cp.ckpt"
-        checkpoint_dir = os.path.dirname(checkpoint_path)
-
-        #data saved every 100 iterations
-        cp_callback = [tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                 save_weights_only=True,
-                                                 save_freq= 100*32,
-                                                 verbose=1
-                                                 ),
-                       tf.keras.callbacks.EarlyStopping(monitor = 'loss', min_delta = 0.001, patience = 500)]
-
         model.compile(loss='mse', optimizer= 'adam')
         
-        model.fit(self.data, self.goal, epochs = 1000, callbacks = [cp_callback])
+        model.fit(self.data, self.goal, epochs = 1000)
 
     def predict(self, genreTags, averageScore):
         global model

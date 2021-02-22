@@ -4,7 +4,7 @@ import json
 import webbrowser
 import time
 import operator
-from main import addSpacing
+#from main import addSpacing
 from API.AniListAccess import *
 from runnables.config import *
 from Algorithms.Sort import *
@@ -423,47 +423,55 @@ class animeList(object):
     def findReccomended():
         animeListDet = animeList.updateAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
 
-        
-        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
-            if(animeListDet[status]['status'] == "COMPLETED"):
-                detListComp = animeListDet[status]['entries']
-            elif(animeListDet[status]['status'] == "PLANNING"):
+        detListComp = {} 
+        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status                
+            if(animeListDet[status]['status'] == "PLANNING"):
                 detListPTW = animeListDet[status]['entries']
+            else:
+                detListComp.update(animeListDet[status]['entries'])
 
         nnRec = recNeuralNet()
         
         #iterates through each anime in the Completed List
         x = 0
-        for detAnime in detListComp:
+        for detList in animeListDet:
 
-            #stores the genres and tags in a list
-            genres = detAnime['media']['genres']
-            tags = detAnime['media']['tags']
-            tagRank = [0] * len(tags)
+            if(detList['status'] == "PLANNING"):
+                continue
+
+            detList = detList['entries']
+
+            for detAnime in detList:
+
+                #stores the genres and tags in a list
+                genres = detAnime['media']['genres']
+                tags = detAnime['media']['tags']
+                tagRank = [0] * len(tags)
             
 
-            #converts the tag's list of set of names to just a list of the names to make it identical in structure to the genres list
-            for x in range(len(tags)):
-                tagRank[x] = tags[x]['rank']
-                tags[x] = tags[x]['name']
+                #converts the tag's list of set of names to just a list of the names to make it identical in structure to the genres list
+                for x in range(len(tags)):
+                    tagRank[x] = tags[x]['rank']
+                    tags[x] = tags[x]['name']
                 
 
-            genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank)
+                genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank)
 
-            userScore = detAnime['media']['mediaListEntry']['score']
-            averageScore = detAnime['media']['averageScore']
+                userScore = detAnime['media']['mediaListEntry']['score']
+                averageScore = detAnime['media']['averageScore']
 
-            x+=1
+                x+=1
 
-            print(len(genreTagBinary[0]) + 1 + len(genreTagBinary[1]))
+                print(len(genreTagBinary[0]) + 1 + len(genreTagBinary[1]))
 
-            nnRec.add(genreTagBinary, averageScore, userScore)
+                nnRec.add(genreTagBinary, averageScore, userScore)
+
+
+            listRec = {} #animeName and their corresponding values will be stored here
+            current = 0 #for the loading bar
+            total = len(detListPTW) #for loading bar
 
         nnRec.train()
-
-        listRec = {} #animeName and their corresponding values will be stored here
-        current = 0 #for the loading bar
-        total = len(detListPTW) #for loading bar
 
         for anime in detListPTW:
 
@@ -498,6 +506,8 @@ class animeList(object):
 
 
         sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
+
+        print(sortedRec)
 
         for x in range(0,len(sortedRec)): #puts the list in a presentable format
             sortedRec[x] = sortedRec[x][0]
@@ -537,6 +547,132 @@ class animeList(object):
         genreTagBinary = [genreBinary, tagBinary]
 
         return genreTagBinary
+
+    def findReccomendedLegacy():
+        animeListDet = animeList.updateAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
+
+        #print(animeListDet)
+        
+        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
+            if(animeListDet[status]['status'] == "PLANNING"):
+              detListPTW = animeListDet[status]['entries']
+
+        #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
+        genreListStat = {}
+        genreListCount = {}
+        genreTotal = 0
+
+        tagListStat = {}
+        tagListCount = {}
+        tagTotal = 0
+
+
+        for detList in animeListDet:
+
+            if(detList['status'] == "PLANNING"):
+                continue
+
+            detList = detList['entries']
+
+            for detAnime in detList:
+
+                scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
+
+
+                for genres in detAnime['media']['genres']:
+
+                    genreValue = scoreValue
+
+                    if genres not in genreListStat:
+                        genreListStat.setdefault(genres, genreValue)
+                        genreListCount.setdefault(genres, 1)
+                    else:
+                        oldGenreVal = genreListStat.get(genres)
+                        genreListStat[genres] = oldGenreVal + genreValue
+                        genreListCount[genres] += 1
+
+                    genreTotal += genreValue
+
+                for tags in detAnime['media']['tags']:
+
+                    tagRank =  tags['rank']
+                    tagTitle = tags['name']
+                    tagValue = scoreValue * tagRank/100
+
+                    if tagTitle not in tagListStat:
+                        tagListStat[tagTitle] = tagValue
+                        tagListCount[tagTitle] = 1
+                    else:
+                        tagListStat[tagTitle] += tagValue
+                        tagListCount[tagTitle] += 1
+
+                    tagTotal += tagValue
+
+            for genres in genreListStat: #applies variability equation to the genre scores
+                if(genreListStat[genres] >= 0):
+                    #genreListStat[genres] = (genreListStat[genres]/genreListCount[genres]) + 1
+                    genreListStat[genres] = (genreListStat[genres]/genreListCount[genres] + 1) 
+                else:
+                    #genreListStat[genres] = 1/((abs(genreListStat[genres]/genreListCount[genres] - 1)))
+                    genreListStat[genres] = 1/abs(genreListStat[genres]/genreListCount[genres] - 1)
+
+            for tags in tagListStat:
+                if(tagListStat[tags] >= 0):
+                    tagListStat[tags] = math.sqrt(tagListStat[tags]/tagTotal)
+                else:
+                    print(tags)
+                    tagListStat[tags] = math.sqrt(abs(tagListStat[tags]/tagTotal)) * -1
+        
+            print(genreListStat)
+            print(tagListStat)
+            #looks through the Planning list and uses the genres as multipliers to find the closest anime
+            listRec = {}
+            for anime in detListPTW:
+                #print(anime)
+                animeMultiplierGenre = 1
+                animeMultiplierTag = 1
+                animeScore = anime['media']['averageScore']
+
+                if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
+
+                    for genres in anime['media']['genres']:
+
+                        if genres in genreListStat:
+                            animeMultiplierGenre *= genreListStat[genres]
+
+                    for tags in anime['media']['tags']:
+                        tagTitle = tags['name']
+                    
+                        if tagTitle in tagListStat:
+                            if(tagListStat[tagTitle] >= 1):
+                                animeMultiplierTag += tagListStat[tagTitle]/20
+                
+                    animeMultiplier = animeMultiplierGenre * animeMultiplierTag
+
+                    if(animeMultiplier >= 1.3):
+                        animeMultiplier = math.pow(animeMultiplier, 1/3)
+
+                
+
+
+                    print("      name: " + str(anime['media']['title']['userPreferred']))
+                    print("genres" + str(anime['media']['genres']))
+                    #print("tags" + str(anime['media']['tags']))
+                    print("animeScore: " + str(animeScore))
+                    #print(genreListStat)
+                    print("animeMultiplier: " + str(animeMultiplier))
+                    animeValue = animeMultiplier * anime['media']['averageScore']
+            
+                    listRec[anime['media']['title']['userPreferred']] = animeValue
+
+            sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
+
+            for x in range(0,len(sortedRec)):
+                print(sortedRec[x][0] + ": " + str(sortedRec[x][1]))
+                sortedRec[x] = sortedRec[x][0]
+
+            return sortedRec
+
 #
 #                                below are all the get methods
 #
