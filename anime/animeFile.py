@@ -4,7 +4,8 @@ import os
 import math
 import numpy
 from runnables.config import *
-from API.animeList import *
+from AniListAPI.updateAnime import *
+from AniListAPI.updateAnime import *
 from Algorithms.valManip import *
 from neuralNetwork.neuralNet import *
 
@@ -178,7 +179,7 @@ class animeFile:
             self.epTotal = epTotal
 
             #updates episode count
-            animeList.changeProgress(animeName, epCurrent)
+            updateAnime.changeProgress(animeName, epCurrent)
             self.updateScores()
 
             #updates data list in instance
@@ -380,7 +381,7 @@ class animeFile:
                 self.changeStatus("CURRENT")
 
             elif(ans == "2"):
-                self.status = "COMPLETED"
+                self.changeStatus("COMPLETED")
 
                 print("     ")
                 print("     ")
@@ -420,7 +421,7 @@ class animeFile:
 
         os.rename(oPath, nPath) #moves file to correct directory
 
-        animeList.changeStatus(self.animeName, nStatus) #changes anime status on user account
+        updateAnime.changeStatus(self.animeName, nStatus) #changes anime status on user account
 
         #updates values
         self.status = nStatus
@@ -454,13 +455,13 @@ class animeFile:
     def updateStats(self):
         '''update stats of anime on website'''
 
-        animeList.changeStatus(self.animeName, self.status) #updates status on website
-        animeList.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
+        updateAnime.changeStatus(self.animeName, self.status) #updates status on website
+        updateAnime.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
 
         if(self.nnScore == 0 or self.status != "COMPLETED"): #updates score on website (scaled score is used if not completed. NN score if it is)
-            animeList.changeScore(self.animeName, self.scaledScore)
+            updateAnime.changeScore(self.animeName, self.scaledScore)
         else:
-            animeList.changeScore(self.animeName, self.nnScore)
+            updateAnime.changeScore(self.animeName, self.nnScore)
 
         pass
     

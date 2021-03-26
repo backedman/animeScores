@@ -3,8 +3,8 @@ import requests
 import json
 import webbrowser
 import sys
-from API.animeList import *
-from API.AniListAccess import *
+from AniListAPI.animeList import *
+from AniListAPI.AniListAccess import *
 
 
 

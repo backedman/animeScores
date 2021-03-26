@@ -1,11 +1,12 @@
 import json
 import numpy
+from AniListAPI.animeList import *
 from Algorithms.valManip import *
 
 class compileData(object):
     '''gets the training sets for the neural network using the data from the saved files'''
 
-    def getSets():
+    def getSetsCompleted():
 
         #open all json files in the completed folder
         Path = valManip.getPath("COMPLETED")
@@ -81,31 +82,43 @@ class compileData(object):
         return data
 
     def getSetsAll():
+        '''gets the statistics and data for each file we have an anime for'''
 
-        #open all json files in the completed folder
-        Path = valManip.getPath("COMPLETED")
-        files = os.listdir(Path)
+
+        animeInfo = animeList.getAnimeList("ALL")['entries']
 
         stats = []
         realScores = []
 
-        for fileName in files:
+        for x in range(len(animeInfo)):
 
-            fileDir = Path + fileName
+          animeName = animeInfo[x]['media']['title']['userPreferred']
+          status = animeInfo[x]['media']['mediaListEntry']['status']
+            
+          Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
+          exists = os.path.exists(Path)
 
-            with open(fileDir, "r+") as json_file: #opens each files and reads them
+          if(exists):
+            with open(Path, "r+") as json_file: #opens each files and reads them
 
                 aniFile = json.load(json_file)
 
-                #stats.append(fileName)
-                stats.append(compileData.getEpisodeCount(aniFile))
-                stats.append(compileData.getAvgScr(aniFile))
-                stats.append(compileData.getBaseSpeedDev(aniFile))
-                stats.append(compileData.getAvgEpDev(aniFile))
-                realScores.append(compileData.getRealScore(aniFile))
+                realScore = compileData.getRealScore(aniFile)
+                impactRating = compileData.getImpactScr(aniFile)
+
+                if realScore == 0 or impactRating == -1:
+                    continue;
+                else:
+                    stats.append(compileData.getEpisodeCount(aniFile))
+                    stats.append(compileData.getAvgScr(aniFile))
+                    stats.append(impactRating)
+                    stats.append(compileData.getBaseSpeedDev(aniFile))
+                    stats.append(compileData.getAvgEpDev(aniFile))
+                    realScores.append(realScore)
+
 
         stats = numpy.array(stats)
-        stats = numpy.reshape(stats, (-1,4))
+        stats = numpy.reshape(stats, (-1,5))
         realScores = numpy.array(realScores)
         realScores = numpy.reshape(realScores, (-1,1))
 
@@ -144,11 +157,15 @@ class compileData(object):
             speed = aniFile['Episodes'][x]['Episode ' + (str)(x + 1)]['Speed']
             totalDev += baseSpeed - float(speed)
 
-        avgDev = totalDev/len(aniFile['Episodes'])
+        try:
+            avgDev = totalDev/len(aniFile['Episodes'])
 
-        avgDev = valManip.round(avgDev, 4)
+            avgDev = valManip.round(avgDev, 4)
 
-        return avgDev
+            return avgDev
+
+        except ZeroDivisionError:
+            return 0
 
     def getAvgEpDev(aniFile):
         '''returns the average amount the user deviated from the Episode Average'''

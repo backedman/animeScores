@@ -56,7 +56,7 @@ class neuralNet(object):
         global model
         
 
-        data = compileData.getSets() #gets the scores and data from all the anime
+        data = compileData.getSetsCompleted() #gets the scores and data from all the anime
 
         stats = np.array(data[0]) #episode count, avg score, impact score, base speed deviation, score deviation
         realScores = np.array(data[1]) #real score 

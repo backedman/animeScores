@@ -23,6 +23,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\recommendations.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Algorithms\Search.py">
       <SubType>Code</SubType>
     </Compile>
@@ -33,14 +36,17 @@
     <Compile Include="Algorithms\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AniListAPI\updateAnime.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="anime\animeFile.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="anime\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="API\animeList.py" />
-    <Compile Include="API\__init__.py">
+    <Compile Include="AniListAPI\animeList.py" />
+    <Compile Include="AniListAPI\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Converter\getData.py">
@@ -50,7 +56,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.py" />
-    <Compile Include="API\AniListAccess.py">
+    <Compile Include="AniListAPI\AniListAccess.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="neuralNetwork\compileData.py">
@@ -72,7 +78,7 @@
   <ItemGroup>
     <Folder Include="Algorithms\" />
     <Folder Include="anime\" />
-    <Folder Include="API\" />
+    <Folder Include="AniListAPI\" />
     <Folder Include="Converter\" />
     <Folder Include="neuralNetwork\" />
     <Folder Include="runnables\" />

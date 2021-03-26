@@ -4,15 +4,15 @@ import json
 import webbrowser
 import os
 import threading
-from API import animeList
-from API.AniListAccess import *
-from API.animeList import *
-from runnables.config import *
-from anime.animeFile import *
-from neuralNetwork.recNeuralNet import *
+from AniListAPI.AniListAccess import *
+from AniListAPI.updateAnime import *
+from AniListAPI.animeList import *
 from Algorithms.Search import *
+import Algorithms.recommendations
+from anime.animeFile import *
+from runnables.config import *
+from neuralNetwork.recNeuralNet import *
 from neuralNetwork.neuralNet import *
-
 
 def main():
    #initialize variables
@@ -144,9 +144,9 @@ def main():
             ans = input()
 
             if(ans == "1"):
-                titleList = animeList.findReccomendedLegacy()
+                titleList = recommendations.findReccomendedLegacy()
             elif(ans == "2"):
-                titleList = animeList.findReccomended()
+                titleList = recommendations.findReccomended()
            
 
 
@@ -193,8 +193,8 @@ def main():
 
             elif(ans == 2):
 
-                animeList.massUpdateNNScore() #updates the Neural Network scores in each file
-                animeList.massUpdateScore() #updates all scores to real score
+                updateAnime.massUpdateNNScore()
+                updateAnime.massUpdateScore()
 
             elif(ans == 3):
 
@@ -326,7 +326,7 @@ def main():
                         tags[x] = tags[x]['name']
                 
 
-                    genreTagBinary = animeList.findGenreTagBinary(genres, tags, tagRank) #gets the binary representation for the genres and tags
+                    genreTagBinary = findGenreTagBinary(genres, tags, tagRank) #gets the binary representation for the genres and tags
                     averageScore = anime['averageScore']
 
                     animeValue = nnRec.predict(genreTagBinary, averageScore) #predicts score of anime
