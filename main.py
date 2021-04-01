@@ -133,7 +133,7 @@ def main():
 
                 elif (int(ans) < 10 and int(ans) > 0):
                     listIndex = int(ans) - 1 + (sPage - 1) * 9
-                    animeName = listResults[listIndex]['media']['title']['userPreferred']
+                    animeName = listResults[listIndex]['title']['userPreferred']
 
                     aniShow = animeFile(animeName, status)
 
