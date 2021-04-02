@@ -2,6 +2,7 @@ import AniListAPI.animeList
 import neuralNetwork.compileData
 from neuralNetwork.neuralNet import *
 from neuralNetwork.recNeuralNet import *
+from tqdm import tqdm, trange
 import neuralNetwork.compileData
 
 
@@ -13,88 +14,115 @@ class recommendations(object):
 
         animeListDet = animeList.updateAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
 
-        detListComp = {} 
-        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status                
+        #print(animeListDet)
+        
+        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
             if(animeListDet[status]['status'] == "PLANNING"):
                 detListPTW = animeListDet[status]['entries']
-            else:
-                detListComp.update(animeListDet[status]['entries'])
+
+        #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
+        genreListStat = {}
+        genreTotal = 0
+
+        tagListStat = {}
+        tagTotal = 0
 
         nnRec = recNeuralNet()
-        
-        #iterates through each anime in the Completed List
-        x = 0
-        for detList in animeListDet:
+
+        for detList in animeListDet: #iterates through each anime list type
 
             if(detList['status'] == "PLANNING"):
                 continue
 
             detList = detList['entries']
 
-            for detAnime in detList:
-
-                #stores the genres and tags in a list
-                genres = detAnime['media']['genres']
-                tags = detAnime['media']['tags']
-                tagRank = [0] * len(tags)
-            
-
-                #converts the tag's list of set of names to just a list of the names to make it identical in structure to the genres list
-                for x in range(len(tags)):
-                    tagRank[x] = tags[x]['rank']
-                    tags[x] = tags[x]['name']
+            for detAnime in detList: #iterates through anime list
                 
-
-                genreTagBinary = recommendations.findGenreTagBinary(genres, tags, tagRank)
-
                 userScore = detAnime['media']['mediaListEntry']['score']
-                averageScore = detAnime['media']['averageScore']
-
-                x+=1
-
-                print(len(genreTagBinary[0]) + 1 + len(genreTagBinary[1]))
-
-                nnRec.add(genreTagBinary, averageScore, userScore)
+                scoreValue = userScore - 7 #userScore is used in genre/tag value calculations. Greater than 7 is beneficial for genre/tags and less than 7 is not
 
 
-            listRec = {} #animeName and their corresponding values will be stored here
-            current = 0 #for the loading bar
-            total = len(detListPTW) #for loading bar
+                for genres in detAnime['media']['genres']: #calculate total values of the genres for the anime
 
-        nnRec.train()
+                    genreValue = scoreValue
+
+                    if genres not in genreListStat:
+                        genreListStat[genres] = [genreValue]
+                    else:
+                        oldGenreVal = genreListStat.get(genres)
+                        np.append(genreListStat[genres], genreValue)
+
+                    genreTotal += genreValue
+
+                for tags in detAnime['media']['tags']: #calculates total values of the tags for the anime
+
+                    tagRank =  tags['rank']
+                    tagTitle = tags['name']
+                    tagValue = scoreValue * tagRank/100
+
+                    if tagTitle not in tagListStat:
+                        tagListStat[tagTitle] = [tagValue]
+                    else:
+                        np.append(tagListStat[tagTitle], tagValue)
+
+                    tagTotal += tagValue
+
+                animeScore = detAnime['media']['averageScore'] #score for the anime across all anilist users
+
+                if(animeScore != None and userScore != 0):
+                    nnRec.add(genreTotal, tagTotal, animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
+
+                genreTotal = 0
+                tagTotal = 0
+
+
+            for genres in genreListStat: #gets the mean of the genreValues for each genre
+                genreListStat[genres] = np.mean(genreListStat[genres])
+
+            for tags in tagListStat:
+                tagListStat[tags] = np.mean(tagListStat[tags])
+            
+            listRec = {} #animeName and their corresponding nnScore will be stored here
+
+            max_iter = len(detListPTW) #for loading bar
+            bar = tqdm(desc = "loading...", total=max_iter) #for loading bar
+
+        nnRec.train() #trains the neural network based on the given data set
+
+        nnRec.test()
 
         for anime in detListPTW:
 
-            current += 1
+            animeName = anime['media']['title']['userPreferred']
+            animeScore = anime['media']['averageScore']
+            genreValue = 0
+            tagValue = 0
 
-            #loading bar
-            percentage = valManip.round(float(current)/total * 100, 1)
+            if(animeScore is not None): #if the anime has released (it has been scored by other people), get score prediction
 
-            for __ in range(40):
-                print("")
+                for genres in anime['media']['genres']:
 
-            print("[" + "x" * int(percentage / 5) + "-" * int(20 - percentage/5) + "]")
-            print(str(percentage) + "%")
+                    if genres in genreListStat:
+                        genreValue += genreListStat[genres]
 
+                for tags in anime['media']['tags']:
+                    tagTitle = tags['name']
+                    
+                    if tagTitle in tagListStat:
+                        tagValue += tagListStat[tagTitle]
 
-            #initializes genre and tag variables of the anime
-            genres = anime['media']['genres']
-            tags = anime['media']['tags']
-            tagRank = [0] * len(tags)
+                nnScore = nnRec.predict(genreValue, tagValue, animeScore)
+                print(animeName + ": ")
+                print("      genreValue: " + str(genreValue))
+                print("        tagValue: " + str(tagValue))
+                print("      animeScore: " + str(animeScore))
+                print("         nnScore: " + str(nnScore))
+                #print(nnScore)
 
-            for x in range(len(tags)):
-                tagRank[x] = tags[x]['rank']
-                tags[x] = tags[x]['name']
-                
+                listRec[animeName] = nnScore
 
-            genreTagBinary = recommendations.findGenreTagBinary(genres, tags, tagRank) #gets binary representation of genres and tags
-            averageScore = detAnime['media']['averageScore']
-
-            animeValue = nnRec.predict(genreTagBinary, averageScore) #gets the score assigned to anime from the neural network (higher = better)
-            
-            listRec[anime['media']['title']['userPreferred']] = animeValue 
-
-
+            #bar.update(1)
+        
         sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
 
         print(sortedRec)
@@ -103,42 +131,6 @@ class recommendations(object):
             sortedRec[x] = sortedRec[x][0]
 
         return sortedRec
-
-    def findGenreTagBinary(genreList, tagList, tagRank):
-        '''returns a binary representation of the genres and tags'''
-
-        global genreTags
-
-        #if the getAllGenreTags method hasn't been called yet, it is called and the genreTags information is stored in memory
-
-        if(genreTags == []):
-            genreTags = animeList.getAllGenreTags()
-        
-        #creates a list for all genres, all tags, genre binary, and tag binary
-        allGenres = genreTags[0]
-        allTags = genreTags[1]
-        genreBinary = [0] * len(allGenres)
-        tagBinary = [0] * len(allTags) 
-
-
-        #assigns 1 for each existing coressponding genre index
-        for genre in genreList:
-            index = allGenres.index(genre)
-
-            if(index > -1):
-                genreBinary[index] = 1
-        
-        #assigns tagRank/100 for each coressponding tag index
-        for tag in range(len(tagList)):
-            index = allTags.index(tagList[tag])
-
-
-            if(index > -1):
-                tagBinary[index] = (tagRank[tag]/100)
-
-        genreTagBinary = [genreBinary, tagBinary]
-
-        return genreTagBinary
 
     def findReccomendedLegacy():
         '''Original recommendation algorithm. Hand crafted based on the score, tags, and genres of an anime based on the anime you have already watched. Returns a sorted Plan to Watch list'''
@@ -239,45 +231,45 @@ class recommendations(object):
         
             #print(genreListStat)
             #print(tagListStat)
-            #looks through the Planning list and uses the genres as multipliers to find the closest anime
-            listRec = {}
-            for anime in detListPTW:
-                #print(anime)
-                animeMultiplierGenre = 1
-                animeMultiplierTag = 1
-                animeScore = anime['media']['averageScore']
+        #looks through the Planning list and uses the genres as multipliers to find the closest anime
+        listRec = {}
+        for anime in detListPTW:
+            #print(anime)
+            animeMultiplierGenre = 1
+            animeMultiplierTag = 1
+            animeScore = anime['media']['averageScore']
 
-                if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
+            if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
-                    for genres in anime['media']['genres']:
+                for genres in anime['media']['genres']:
 
-                        if genres in genreListStat:
-                            animeMultiplierGenre *= genreListStat[genres]
+                    if genres in genreListStat:
+                        animeMultiplierGenre *= genreListStat[genres]
 
-                    for tags in anime['media']['tags']:
-                        tagTitle = tags['name']
+                for tags in anime['media']['tags']:
+                    tagTitle = tags['name']
                     
-                        if tagTitle in tagListStat:
-                            if(tagListStat[tagTitle] >= 1):
-                                animeMultiplierTag += tagListStat[tagTitle]/20
+                    if tagTitle in tagListStat:
+                        if(tagListStat[tagTitle] >= 1):
+                            animeMultiplierTag += tagListStat[tagTitle]/20
                 
-                    animeMultiplier = animeMultiplierGenre * animeMultiplierTag
+                animeMultiplier = animeMultiplierGenre * animeMultiplierTag
 
-                    if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
-                        animeMultiplier = math.pow(animeMultiplier, 1/3)
+                if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
+                    animeMultiplier = math.pow(animeMultiplier, 1/3)
 
                 
 
 
-                    print("      name: " + str(anime['media']['title']['userPreferred']))
-                    print("genres" + str(anime['media']['genres']))
-                    #print("tags" + str(anime['media']['tags']))
-                    print("animeScore: " + str(animeScore))
-                    #print(genreListStat)
-                    print("animeMultiplier: " + str(animeMultiplier))
-                    animeValue = animeMultiplier * anime['media']['averageScore']
+                print("      name: " + str(anime['media']['title']['userPreferred']))
+                print("genres" + str(anime['media']['genres']))
+                #print("tags" + str(anime['media']['tags']))
+                print("animeScore: " + str(animeScore))
+                #print(genreListStat)
+                print("animeMultiplier: " + str(animeMultiplier))
+                animeValue = animeMultiplier * anime['media']['averageScore']
             
-                    listRec[anime['media']['title']['userPreferred']] = animeValue
+                listRec[anime['media']['title']['userPreferred']] = animeValue
 
             sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 

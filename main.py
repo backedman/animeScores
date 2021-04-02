@@ -8,7 +8,7 @@ from AniListAPI.AniListAccess import *
 from AniListAPI.updateAnime import *
 from AniListAPI.animeList import *
 from Algorithms.Search import *
-import Algorithms.recommendations
+from Algorithms.recommendations import *
 from anime.animeFile import *
 from runnables.config import *
 from neuralNetwork.recNeuralNet import *
