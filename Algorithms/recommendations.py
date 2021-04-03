@@ -163,6 +163,8 @@ class recommendations(object):
             for detAnime in detList:
 
                 scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
+                if((scoreValue + 7) == 0):
+                    continue
 
 
                 for genres in detAnime['media']['genres']:
@@ -170,11 +172,11 @@ class recommendations(object):
                     genreValue = scoreValue
 
                     if genres not in genreListStat:
-                        genreListStat[genres] = [genreValue]
+                        genreListStat[genres] = np.array(genreValue)
                         genreListCount.setdefault(genres, 1)
+                        print("here")
                     else:
-                        oldGenreVal = genreListStat.get(genres)
-                        genreListStat[genres].append(genreValue)
+                        genreListStat[genres] = np.append(genreListStat[genres], genreValue)
                         genreListCount[genres] += 1
 
                     genreTotal += genreValue
@@ -186,55 +188,64 @@ class recommendations(object):
                     tagValue = scoreValue * tagRank/100
 
                     if tagTitle not in tagListStat:
-                        tagListStat[tagTitle] = [tagValue]
+                        tagListStat[tagTitle] = np.array(tagValue)
                         tagListCount[tagTitle] = 1
                     else:
-                        tagListStat[tagTitle].append(tagValue)
+                        tagListStat[tagTitle] = np.append(tagListStat[tagTitle], tagValue)
                         tagListCount[tagTitle] += 1
 
                     tagTotal += tagValue
 
-            for genres in genreListStat: #applies variability equation to the genre scores
+        print(genreListStat)
 
-                currGenre = sorted(genreListStat[genres])
+        for genres in genreListStat: #applies variability equation to the genre scores
 
-                if(len(currGenre) < 2):
-                    genreListStat[genres] = 1
-                    continue
+            currGenre = sorted(genreListStat[genres])
 
-                midPoint = int(len(currGenre)/2)
-                median = currGenre[midPoint]
-                total = np.sum(currGenre)
+            if(len(currGenre) < 2):
+                genreListStat[genres] = 1
+                continue
 
-                if(median >= 0):
-                    #genreListStat[genres] = (genreListStat[genres]/genreListCount[genres]) + 1
-                    genreListStat[genres] = (median + 1) * (1 + (total/2)/genreTotal)
-                else:
-                    #genreListStat[genres] = 1/((abs(genreListStat[genres]/genreListCount[genres] - 1)))
-                    genreListStat[genres] = 1/abs(median - 1) * ((1 + (total/2)/genreTotal))
+            midPoint = int(len(currGenre)/2)
+            median = currGenre[midPoint]
+            total = np.sum(currGenre)
 
-            for tags in tagListStat:
+            if(median >= 0):
+                #genreListStat[genres] = (genreListStat[genres]/genreListCount[genres]) + 1
+                genreListStat[genres] = (median + 1) * (1 + (total/2)/genreTotal)
+            else:
+                #genreListStat[genres] = 1/((abs(genreListStat[genres]/genreListCount[genres] - 1)))
+                genreListStat[genres] = 1/abs(median - 1) * ((1 + (total/2)/genreTotal))
+        
+        print(tagListStat)
 
+        for tags in tagListStat:
+
+            try:
                 currTag = sorted(tagListStat[tags])
-                if(len(currTag) < 2):
-                    tagListStat[tags] = 0
-                    continue
-                midPoint = int(len(currTag)/2)
-                print(tags)
-                median = currTag[midPoint]
-                total = np.sum(currTag)
+            except:
+                currTag = [tagListStat[tags]]
+                print(currTag)
 
-                if(median >= 0):
-                    tagListStat[tags] = math.sqrt(median) * (1 + (total/2)/tagTotal)
-                else:
-                    tagListStat[tags] = math.sqrt(abs(median)) * -1 * (1 + (total/2)/tagTotal)
+            if(len(currTag) < 2):
+                tagListStat[tags] = 0
+                continue
+            midPoint = int(len(currTag)/2)
+            median = currTag[midPoint]
+            total = np.sum(currTag)
+
+            if(median >= 0):
+                tagListStat[tags] = math.sqrt(median) * (1 + (total/2)/tagTotal)
+            else:
+                tagListStat[tags] = math.sqrt(abs(median)) * -1 * (1 + (total/2)/tagTotal)
         
             #print(genreListStat)
             #print(tagListStat)
         #looks through the Planning list and uses the genres as multipliers to find the closest anime
         listRec = {}
+
         for anime in detListPTW:
-            #print(anime)
+            print(anime)
             animeMultiplierGenre = 1
             animeMultiplierTag = 1
             animeScore = anime['media']['averageScore']
@@ -258,9 +269,6 @@ class recommendations(object):
                 if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
                     animeMultiplier = math.pow(animeMultiplier, 1/3)
 
-                
-
-
                 print("      name: " + str(anime['media']['title']['userPreferred']))
                 print("genres" + str(anime['media']['genres']))
                 #print("tags" + str(anime['media']['tags']))
@@ -271,11 +279,11 @@ class recommendations(object):
             
                 listRec[anime['media']['title']['userPreferred']] = animeValue
 
-            sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
+        sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 
-            for x in range(0,len(sortedRec)):
-                print(sortedRec[x][0] + ": " + str(sortedRec[x][1]))
-                sortedRec[x] = sortedRec[x][0]
+        for x in range(0,len(sortedRec)):
+            print(sortedRec[x][0] + ": " + str(sortedRec[x][1]))
+            sortedRec[x] = sortedRec[x][0]
 
-            return sortedRec
+        return sortedRec
 
