@@ -17,6 +17,7 @@ QUERY_URL = "https://graphql.anilist.co"
 ACCESS_TOKEN = ""
 ACCESS_HEADER = ""
 USER_ID = ""
+USER_NAME = ""
 
 
 """accesses and authenticates user using AniList API"""
@@ -63,12 +64,13 @@ class AniListAccess():
 
     #finds user ID from server using Access Code
     def findUserID():
-        global QUERY_URL, ACCESS_HEADER, USER_ID
+        global QUERY_URL, ACCESS_HEADER, USER_ID, USER_NAME
         #sets query parameters to request user data
         query = '''
         query {
             Viewer{
                 id
+                name
             }
         }
         '''
@@ -79,9 +81,11 @@ class AniListAccess():
 
         #get user data from server
         userData = AniListAccess.getData(query, variables)
+        print(userData)
         
         #gets the user data
         USER_ID = userData['data']['Viewer']['id']
+        USER_NAME = userData['data']['Viewer']['name']
         pass
     
     
@@ -137,6 +141,7 @@ class AniListAccess():
         reqRemaining = data.headers['X-RateLimit-Remaining'] #requests remaining
 
         returnData = (json.loads(data.content))
+
         returnData = returnData['data']
         
         returnData = { 'data' : returnData,
@@ -165,7 +170,14 @@ class AniListAccess():
         return QUERY_URL
 
     def getUserID():
+        if(USER_ID == ""):
+            AniListAccess.findUserID()
         return USER_ID
+    
+    def getUserName():
+        if(USER_NAME == ""):
+            AniListAccess.findUserID()
+        return USER_NAME
         
 
     

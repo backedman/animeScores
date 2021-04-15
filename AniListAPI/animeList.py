@@ -19,6 +19,7 @@ animeListPaused = []
 animeListRepeating = []
 animeListCurrent = []
 animeListAll = []
+animeListDet = []
 listAll = []
 statusTypes = []
 genreTags = []
@@ -117,16 +118,22 @@ class animeList():
  
         pass
 
-    def updateAnimeListDet():
-        '''gets animeList from API and updates the anime list'''
+    def updateAnimeListDet(user):
+        '''gets animeLists from API'''
         
         global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
-        UserID = AniListAccess.getUserID()
+        if(user == ""):
+            print("here")
+            userName = AniListAccess.getUserName()
+        else:
+            userName = user
+
+        print(userName)
 
         #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
         query = '''
-        query ($userID: Int)  {
-                MediaListCollection(userId : $userID,  type: ANIME) {
+        query ($userName: String)  {
+                MediaListCollection(userName : $userName,  type: ANIME) {
                     
                      lists {
                           
@@ -165,12 +172,14 @@ class animeList():
         
         #sets correct information for the query. If all anime in the list are wanted, then status is not set
         variables = {
-            'userID' : UserID,
+            'userName' : userName,
         }
-
 
         #requests data from API into a list 
         animeListData = AniListAccess.getData(query, variables)['data']['MediaListCollection']['lists']
+
+        if(user == "" or user == AniListAccess.getUserName()):
+            animeListDet = animeListData
 
         return animeListData
 
@@ -351,6 +360,14 @@ class animeList():
         #returns json data of anime
         animeData = (AniListAccess.getData(query, variables))['data']['Media']
         return animeData
+
+    def getAnimeListDet():
+        global animeListDet
+
+        if(animeListDet == []):
+            return animeList.updateAnimeListDet("")
+        else:
+            return animeListDet
 
     def getAnimeSearch(animeName):
         '''gets first search result of anime search'''
