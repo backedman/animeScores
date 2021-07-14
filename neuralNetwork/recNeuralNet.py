@@ -11,23 +11,30 @@ class recNeuralNet:
     data = []
     goal = []
     detListTotal = []
+    newModel = False
 
     def __init__(self):
-        global model
+        global model, newModel
 
-        #creates the neural network with the layers
-        #model = keras.Sequential(
-        #            [
-        #            layers.Dense(40, name="layer1", activation= "relu"),
-        #            layers.Dense(80, name="layer2", activation= "relu"),
-        #            layers.Dense(10, name="layer3", activation= "relu"),
-        #            layers.Dense(1, name = "layer4")
-        #            ]
-        #        )
+        try: #loads saved model. If it does not exist or is corrupted or something, then a new one is created.
+            model = keras.models.load_model("nnWeights/recommendations")
+            newModel = False
 
-        model = keras.models.load_model("nnWeights/recommendations")
+        except:
+            #creates the neural network with the layers
+            model = keras.Sequential(
+                        [
+                        layers.Dense(80, name="layer1", activation= "relu"),
+                        layers.Dense(160, name="layer2", activation= "relu"),
+                        layers.Dense(60, name="layer3", activation= "relu"),
+                        layers.Dense(40, name = "layer4", activation = "relu"),
+                        layers.Dense(1, name = "layer5")
+                        ]
+                    )
+            newModel = True
+       
 
-        ##model = keras.Model(inputs = inputs, outputs = output)
+        #model = keras.Model(inputs = inputs, outputs = output)
 
     def add(self, genreValue, tagValue, animeScore, userScore):
         '''appends the genreValue, tagValue, and Scores from the anime into the data'''
@@ -78,7 +85,8 @@ class recNeuralNet:
                 for genres in detAnime['media']['genres']:
                     try:
                         if genres in genreListStat:
-                            genreValue += np.mean(genreListStat[genres])
+                            for genreScore in genreListStat[genres]:
+                                genreValue += genreScore
                     except:
                         continue
 
@@ -88,13 +96,15 @@ class recNeuralNet:
                     
                     try:
                         if tagTitle in tagListStat:
-                            tagValue += np.mean(tagListStat[tagTitle])
+                            for tagScore in tagListStat[tagTitle]:
+                                tagValue += tagScore
                     except:
                         continue
 
 
                 if(animeScore != None and userScore != 0):
-                    self.add(float(genreValue), float(tagValue), animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
+                    print(valManip.sqrtKeepNeg(genreValue))
+                    self.add(float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
                     genreValue = 0
                     tagValue = 0
 
@@ -167,9 +177,9 @@ class recNeuralNet:
 
         opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-        model.compile(loss='mse', optimizer= 'adam', metrics=["accuracy"])
+        model.compile(loss='mse', optimizer= opt, metrics=["accuracy"])
         
-        model.fit(self.data, self.goal,batch_size= 35, epochs = 2000)
+        model.fit(self.data, self.goal,batch_size= 35, epochs = 8000)
         model.save("nnWeights/recommendations")
 
     def predict(self, genreValue, tagValue, animeScore):
@@ -199,4 +209,9 @@ class recNeuralNet:
 
         diff = self.goal - prediction
         print(diff)
+
+    def isNewModel(self): #returns in a new model was created or not when object was created
+        global newModel
+
+        return newModel
         

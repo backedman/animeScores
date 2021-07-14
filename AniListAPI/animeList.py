@@ -350,6 +350,17 @@ class animeList():
                     averageScore
                     meanScore
                     favourites
+					recommendations{
+						edges{
+						    node{
+							    mediaRecommendation{
+								    title{
+									    userPreferred
+								    }
+							    }
+						    }
+						}
+					}
                 }
             }
             '''
@@ -357,8 +368,13 @@ class animeList():
             'animeName' : animeName
         }
 
+
+
         #returns json data of anime
-        animeData = (AniListAccess.getData(query, variables))['data']['Media']
+        animeData = (AniListAccess.getData(query, variables)) #['data']['Media']
+
+        print(animeData)
+
         return animeData
 
     def getAnimeListDet():

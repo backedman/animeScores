@@ -81,7 +81,6 @@ class AniListAccess():
 
         #get user data from server
         userData = AniListAccess.getData(query, variables)
-        print(userData)
         
         #gets the user data
         USER_ID = userData['data']['Viewer']['id']
@@ -141,6 +140,9 @@ class AniListAccess():
         reqRemaining = data.headers['X-RateLimit-Remaining'] #requests remaining
 
         returnData = (json.loads(data.content))
+
+        if(returnData['data'] == None):
+            print(returnData)
 
         returnData = returnData['data']
         

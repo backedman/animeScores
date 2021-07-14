@@ -42,3 +42,11 @@ class valManip(object):
         os.makedirs(Path, exist_ok=True)
 
         return Path
+
+    def sqrtKeepNeg(value):
+        '''returns the square root of a number while keeping the negative'''
+
+        if(value >= 0):
+            return math.sqrt(value)
+        else:
+            return -math.sqrt(abs(value))

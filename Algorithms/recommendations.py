@@ -6,25 +6,25 @@ from neuralNetwork.recNeuralNet import *
 from tqdm import tqdm, trange
 import neuralNetwork.compileData
 
+nnRec = recNeuralNet()
 
-class recommendations(object):
+class recommendations():
     """description of class"""
 
-    nnRec = recNeuralNet()
 
 
     def findReccomended():
         '''uses neural network to recommend anime. A list of anime is returned sorted from best to worst. It is not recommended to use this due to the insane amount of inputs relative to the amount of anime a person watches'''
         global nnRec
-        nnRec = recNeuralNet()
 
-        userDataSets = [AniListAccess.getUserName(), "MicchiMi", "snowwww", "Adaptz"]
+        userDataSets = [AniListAccess.getUserName(), "MicchiMi", "snowwww", "Leonny", "shayoomshi", "g1appiah", "yuzurha"]
 
-        #for user in userDataSets:
-        #    nnRec.addDataSet(user)
+        if(nnRec.isNewModel()): #if a new model was created, train the neural net. If a new model was not created, use the previously trained network.
+            for user in userDataSets:
+                nnRec.addDataSet(user)
 
-        #nnRec.train()
-        #nnRec.test()
+            nnRec.train()
+            nnRec.test()
 
         stats = recommendations.getGenreTagValues()
         genreListStat = stats[0]
@@ -48,7 +48,8 @@ class recommendations(object):
 
                     try:
                         if genres in genreListStat:
-                            genreValue += np.mean(genreListStat[genres])
+                            for genreScore in genreListStat[genres]:
+                                genreValue += genreScore
                     except:
                         continue
 
@@ -59,18 +60,16 @@ class recommendations(object):
                     
                     try:
                         if tagTitle in tagListStat:
-                            tagValue += np.mean(tagListStat[tagTitle])
+                            for tagScore in tagListStat[tagTitle]:
+                                tagValue += tagScore
                     except:
                         continue
-
-                animeInfo = np.append(animeInfo, [float(genreValue), float(tagValue), animeScore])
+                animeInfo = np.append(animeInfo, [float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), animeScore])
                 animeNames = np.append(animeNames, animeName)
 
                 #nnScore = nnRec.predict(genreValue, tagValue, animeScore)
                 print(animeName + ": ")
-                print("      genreValue: " + str(genreValue))
-                print("        tagValue: " + str(tagValue))
-                print("      animeScore: " + str(animeScore))
+
                 #print("         nnScore: " + str(nnScore))
                 #print(nnScore)
 
@@ -84,7 +83,14 @@ class recommendations(object):
         print(len(results))
         for anime in animeNames:
             listRec[anime] = results[index]
+            print(anime + ": ")
+            print("      genreValue: " + str(animeInfo[index][0]))
+            print("        tagValue: " + str(animeInfo[index][1]))
+            print("      animeScore: " + str(animeInfo[index][2]))
+            print("         nnScore: " + str(results[index]))
+
             index += 1
+
 
             #bar.update(1)
         
