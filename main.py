@@ -15,6 +15,9 @@ from neuralNetwork.recNeuralNet import *
 from neuralNetwork.neuralNet import *
 
 def main():
+
+    addSpacing()
+
    #initialize variables
     speedChangeable = False
     baseSpeed = 1.0
@@ -351,21 +354,8 @@ def main():
         pass
 
 def addSpacing():
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
-    print("       ")
+    for x in range(50):
+        print("              ")
 
 
 
