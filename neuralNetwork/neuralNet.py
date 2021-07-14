@@ -89,10 +89,10 @@ class neuralNet(object):
             layers.Dense(10, name="layer3", activation= "relu"),
             layers.Dense(1, name = "layer4")
             ]
-        )
-
-        #compiles model
+        )#compiles model
         model.compile(loss='mse', optimizer= 'adam')
+
+
 
         #pretty much has neural network try to link stats with real score
         model.fit(stats, realScores, epochs = iterations, callbacks = [cp_callback])

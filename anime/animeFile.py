@@ -444,6 +444,7 @@ class animeFile:
         Data['Info']['Score']['Average Score'] = valManip.round(self.avgScore, 2)
         Data['Info']['Score']['Scaled Score'] = valManip.round(self.scaledScore, 2)
         Data['Info']['Score']['NN Score'] = valManip.round(self.nnScore, 2)
+        self.impactScore = Data['Info']['Impact Rating'] = self.impactScore
         Data['Info']['Score']['Real Score'] = self.realScore
 
         #writes to file
