@@ -217,8 +217,9 @@ class recommendations():
         stats = recommendations.getGenreTagValues()
         genreListStat = stats[0]
         tagListStat = stats[1]
-        animeCount = stats[2]
-        detListPTW = stats[3]
+        recListStat = stats[2]
+        animeCount = stats[3]
+        detListPTW = stats[4]
 
         for genres in genreListStat: #applies variability equation to the genre scores
 
@@ -276,6 +277,7 @@ class recommendations():
             print(tags + ": " + str(mean))
             print("      multi: " + str(tagListStat[tags]))
         
+
         #looks through the Planning list and uses the genres as multipliers to find the closest anime
         listRec = {}
 
@@ -283,7 +285,9 @@ class recommendations():
             #print(anime)
             animeMultiplierGenre = 1
             animeMultiplierTag = 1
+            animeMultiplierRec = 1
             animeScore = anime['media']['averageScore']
+            animeName = anime['media']['title']['userPreferred']
 
             if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
@@ -300,14 +304,30 @@ class recommendations():
                 
                     if animeMultiplierTag < 1:
                         animeMultiplierTag = abs(1/animeMultiplierTag)
+                try:
+                    if animeName in recListStat:
+                        animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
+                        if(animeMultiplierRec >= 0):
+                            animeMultiplierRec += 1
+                        elif(animeMultiplierRec < 0):
+                            animeMultiplierRec -=1
+                except:
+                    animeMultiplierRec = 1
+
+                if animeMultiplierRec < 1:
+                    animeMultiplierRec = abs(1/animeMultiplierTag)
 
                 animeMultiplier = animeMultiplierGenre * animeMultiplierTag
+
+                animeMultiplier *= animeMultiplierRec ** 0.3
 
                 if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
                     try:
                         animeMultiplier = math.pow(animeMultiplier, 1/3)
                     except:
                         print(animeMultiplier)
+
+                
 
                 print("      name: " + str(anime['media']['title']['userPreferred']))
                 print("genres" + str(anime['media']['genres']))
