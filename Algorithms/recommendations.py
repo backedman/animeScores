@@ -29,7 +29,8 @@ class recommendations():
         stats = recommendations.getGenreTagValues()
         genreListStat = stats[0]
         tagListStat = stats[1]
-        detListPTW = stats[3]
+        recListStat = stats[2]
+        detListPTW = stats[4]
 
         listRec = {}
         animeInfo = np.array([])
@@ -41,6 +42,7 @@ class recommendations():
             animeScore = anime['media']['averageScore']
             genreValue = 0
             tagValue = 0
+            recValue = 0
 
             if(animeScore is not None): #if the anime has released (it has been scored by other people), get score prediction
 
@@ -64,7 +66,14 @@ class recommendations():
                                 tagValue += tagScore
                     except:
                         continue
-                animeInfo = np.append(animeInfo, [float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), animeScore])
+                
+                try:
+                    if animeName in recListStat:
+                        recValue = np.sum(recListStat[animeName])
+                except:
+                    continue
+
+                animeInfo = np.append(animeInfo, [float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), recValue, animeScore])
                 animeNames = np.append(animeNames, animeName)
 
                 #nnScore = nnRec.predict(genreValue, tagValue, animeScore)
@@ -75,7 +84,7 @@ class recommendations():
 
                 #listRec[animeName] = nnScore
 
-        animeInfo = np.reshape(animeInfo, (-1,3))
+        animeInfo = np.reshape(animeInfo, (-1,4))
         results = nnRec.predictGroup(animeInfo)
         
         index = 0
@@ -86,7 +95,8 @@ class recommendations():
             print(anime + ": ")
             print("      genreValue: " + str(animeInfo[index][0]))
             print("        tagValue: " + str(animeInfo[index][1]))
-            print("      animeScore: " + str(animeInfo[index][2]))
+            print("        recValue: " + str(animeInfo[index][2]))
+            print("      animeScore: " + str(animeInfo[index][3]))
             print("         nnScore: " + str(results[index]))
 
             index += 1
@@ -99,7 +109,7 @@ class recommendations():
         print(sortedRec)
 
         for x in range(0,len(sortedRec)): #puts the list in a presentable format
-            sortedRec[x] = sortedRec[x][0]
+            sortedRec[x] = str(sortedRec[x][0]) + "- " + str(sortedRec[x][1])
 
         #while True:
 
@@ -128,9 +138,11 @@ class recommendations():
         tagListStat = {}
         tagTotal = 0
 
+        recListStat = {}
+
         animeCount = 0
 
-        for detList in animeListDet:
+        for detList in animeListDet: #iterates through each anime list
 
             if(detList['status'] == "PLANNING" or detList['status'] == "CURRENT"):
                 continue
@@ -138,9 +150,7 @@ class recommendations():
             detList = detList['entries']
             animeCount += len(detList)
 
-            for detAnime in detList:
-
-
+            for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
                 scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
 
@@ -148,7 +158,7 @@ class recommendations():
                     continue
 
 
-                for genres in detAnime['media']['genres']:
+                for genres in detAnime['media']['genres']: #gets genreValues
 
                     genreValue = scoreValue
 
@@ -158,7 +168,7 @@ class recommendations():
                         genreListStat[genres] = np.append(genreListStat[genres], genreValue)
 
 
-                for tags in detAnime['media']['tags']:
+                for tags in detAnime['media']['tags']: #gets tagValues
 
                     tagRank =  tags['rank']
                     tagTitle = tags['name']
@@ -169,7 +179,32 @@ class recommendations():
                     else:
                         tagListStat[tagTitle] = np.append(tagListStat[tagTitle], tagValue)
 
-            stats = [genreListStat, tagListStat, animeCount, detListPTW]
+                for recommendation in detAnime['media']['recommendations']['edges']:
+                    recommendation = recommendation['node']
+
+                    print(recommendation)
+
+                    try:
+                        rating = recommendation['rating']
+                        title = recommendation['mediaRecommendation']['title']['userPreferred']
+                    except:
+                        continue
+
+
+                    if(rating <= 0):
+                        continue
+                    if(rating > 50):
+                        rating = 50
+
+
+                    recValue = scoreValue * (rating ** 0.25)
+
+                    if title not in recListStat:
+                        recListStat[title] = np.array(recValue)
+                    else:
+                        recListStat[title] = np.append(recListStat[title], recValue)
+
+            stats = [genreListStat, tagListStat, recListStat, animeCount, detListPTW]
 
             return stats
 

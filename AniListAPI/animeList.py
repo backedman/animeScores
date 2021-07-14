@@ -159,8 +159,21 @@ class animeList():
                               popularity
 
                               mediaListEntry {
-                                    score
-                                }
+                                score
+                              }
+
+                              recommendations{
+						        edges{
+						            node{
+                                        rating
+							            mediaRecommendation{
+								            title{
+									            userPreferred
+								            }
+							            }
+                                    }
+						}
+					}
 
                             }
 
@@ -353,6 +366,7 @@ class animeList():
 					recommendations{
 						edges{
 						    node{
+                                rating
 							    mediaRecommendation{
 								    title{
 									    userPreferred
@@ -396,6 +410,7 @@ class animeList():
                     }
                     episodes                  
                     duration
+
                 }
             }
             '''

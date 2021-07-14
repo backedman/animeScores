@@ -36,13 +36,15 @@ class recNeuralNet:
 
         #model = keras.Model(inputs = inputs, outputs = output)
 
-    def add(self, genreValue, tagValue, animeScore, userScore):
+    def add(self, genreValue, tagValue, recValue, animeScore , userScore):
         '''appends the genreValue, tagValue, and Scores from the anime into the data'''
         global data, goal
 
         self.data.append(float(genreValue))
         self.data.append(float(tagValue))
+        self.data.append(float(recValue))
         self.data.append(float(animeScore))
+
 
         self.goal.append(userScore * 10)
 
@@ -61,6 +63,8 @@ class recNeuralNet:
 
         genreListStat = genreTagStats[0]
         tagListStat = genreTagStats[1]
+        recListStat = genreTagStats[2]
+
 
 
 
@@ -101,10 +105,20 @@ class recNeuralNet:
                     except:
                         continue
 
+                try:
+                    if animeName in recListStat:
+                        recValue = np.sum(recListStat[animeName])
+                except:
+                    recValue = 0
+                
+
+
+
+                    
 
                 if(animeScore != None and userScore != 0):
                     print(valManip.sqrtKeepNeg(genreValue))
-                    self.add(float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
+                    self.add(float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), recValue, animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
                     genreValue = 0
                     tagValue = 0
 
@@ -115,6 +129,7 @@ class recNeuralNet:
         genreTotal = 0
         tagListStat = {}
         tagTotal = 0
+        recListStat = {}
 
         
         for detList in animeListDet: #iterates through each anime list type
@@ -157,9 +172,33 @@ class recNeuralNet:
                     else:
                         tagListStat[tagTitle] = np.append(tagListStat[tagTitle], tagValue)
 
+                print(detAnime)
+
+                for recommendation in detAnime['media']['recommendations']['edges']:
+                    recommendation = recommendation['node']
+
+                    try:
+                        rating = recommendation['rating']
+                        title = recommendation['mediaRecommendation']['title']['userPreferred']
+                    except:
+                        continue
+
+                    if(rating <= 0):
+                        continue
+                    if(rating > 10):
+                        rating = 50
+
+
+                    recValue = scoreValue * (rating ** 0.25)
+
+                    if title not in recListStat:
+                        recListStat[title] = np.array(recValue)
+                    else:
+                        recListStat[title] = np.append(recListStat[title], recValue)
+
                 animeScore = detAnime['media']['averageScore'] #score for the anime across all anilist users
 
-            return [genreListStat, tagListStat]
+            return [genreListStat, tagListStat, recListStat]
 
 
 
@@ -167,7 +206,7 @@ class recNeuralNet:
         global model, data, goal
 
         self.data = np.array(self.data)
-        self.data = np.reshape(self.data, (-1,3))
+        self.data = np.reshape(self.data, (-1,4))
         self.goal = np.array(self.goal)
         self.goal = np.reshape(self.goal, (-1,1))
 
@@ -177,18 +216,18 @@ class recNeuralNet:
 
         opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-        model.compile(loss='mse', optimizer= opt, metrics=["accuracy"])
+        model.compile(loss='mse', optimizer= 'adam', metrics=["accuracy"])
         
         model.fit(self.data, self.goal,batch_size= 35, epochs = 8000)
         model.save("nnWeights/recommendations")
 
-    def predict(self, genreValue, tagValue, animeScore):
+    def predict(self, genreValue, tagValue, recValue, animeScore):
         global model
 
-        testData = [genreValue, tagValue, animeScore]
+        testData = [genreValue, tagValue, recValue, animeScore]
 
         testData = np.array(testData)
-        testData = np.reshape(testData, (-1,3))
+        testData = np.reshape(testData, (-1,4))
 
         animeValue = float(model.predict(testData))
         #print(animeValue)
@@ -197,6 +236,10 @@ class recNeuralNet:
 
     def predictGroup(self, animeInfo):
         global model
+
+        animeInfo = np.reshape(animeInfo, (-1,4))
+
+        print(animeInfo)
 
         animeValues = model.predict(animeInfo)
 
