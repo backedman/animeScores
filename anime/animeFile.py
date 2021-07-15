@@ -238,7 +238,10 @@ class animeFile:
             elif(difference < -0.25 and difference >= -1):
                 total += epRating + (math.log(abs(difference), 4) + 2)
 
-        score = total/epCurrent
+        try:
+            score = total/epCurrent
+        except:
+            score = None
 
         #shifts score based on impact rating
         if(impactScore != -1):
@@ -262,7 +265,10 @@ class animeFile:
             total += epRating
 
         #averages score
-        score = total/epCurrent
+        try:
+            score = total/epCurrent
+        except:
+            score = None
             
         #saves score
         self.avgScore = score
@@ -284,7 +290,7 @@ class animeFile:
             totalDev += (avgScore - epRating) ** 2
 
         try:
-            avgDev = totalDev/(epCurrent - 1) #gets the average of the differences between the episode's score and average score
+            avgDev = totalDev/(epCurrent) #gets the average of the differences between the episode's score and average score
 
             avgDev = valManip.round(avgDev, 4)
 
@@ -293,7 +299,7 @@ class animeFile:
             return avgDev
         
         except ZeroDivisionError:
-            return 0;
+            return None;
 
 
     def getAvgSpeedDeviation(self):
@@ -310,7 +316,10 @@ class animeFile:
             speed = Data['Episodes'][x-1]['Episode ' + (str)(x)]['Speed']
             totalDev += float(speed) - baseSpeed
 
-        avgDev = totalDev/epCurrent
+        try:
+            avgDev = totalDev/epCurrent
+        except:
+            avgDev = None
 
         avgDev = valManip.round(avgDev, 4)
 
@@ -330,18 +339,20 @@ class animeFile:
 
         print("epCount: " + str(epCount))
 
-        #gets the nn score prediction
-        if(impactScore != -1): #if show has impact rating use this version
-            stats = numpy.array([epCount, avgScore, impactScore, baseSpeedDev, epScoreDev])
-            stats = numpy.reshape(stats, (-1, 5))
-            prediction = neuralNet.predict(stats)
+        try:
+            #gets the nn score prediction
+            if(impactScore != -1): #if show has impact rating use this version
+                stats = numpy.array([epCount, avgScore, impactScore, baseSpeedDev, epScoreDev])
+                stats = numpy.reshape(stats, (-1, 5))
+                prediction = neuralNet.predict(stats)
 
 
-        else: #if show does not have impact rating use this version
-            stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
-            stats = numpy.reshape(stats, (-1, 4))
-            print("here")
-            prediction = neuralNet.predictNoImpact(stats)
+            else: #if show does not have impact rating use this version
+                stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
+                stats = numpy.reshape(stats, (-1, 4))
+                prediction = neuralNet.predictNoImpact(stats)
+        except:
+            return None
 
         
 
