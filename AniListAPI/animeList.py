@@ -383,9 +383,7 @@ class animeList():
 
 
         #returns json data of anime
-        animeData = (AniListAccess.getData(query, variables)) #['data']['Media']
-
-        print(animeData)
+        animeData = (AniListAccess.getData(query, variables))['data']['Media']
 
         return animeData
 
