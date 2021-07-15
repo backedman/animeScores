@@ -67,8 +67,9 @@ def main():
         print("Q. Previous Page ")
         print("E. Next Page")
         print("A. Choose Page")
+        print("             ")
         print("S. Search")
-        print("F. Find Reccomendation")
+        print("R. Calculate Recommendations")
         print("O. Options")
         print("X. Exit Program ")
         ans = input()
@@ -98,9 +99,9 @@ def main():
             animeName = input()
             titleList = animeList.getAnimeSearchList(animeName, 5)
 
-        elif (ans == "F" or ans == "f"):
-            print("1. Normal")
-            print("2. Experimental (not recommended)")
+        elif (ans == "R" or ans == "R"):
+            print("1. Normal (recommended)")
+            print("2. Experimental")
 
             ans = input()
 
