@@ -218,7 +218,7 @@ class recNeuralNet:
 
         model.compile(loss='mse', optimizer= 'adam', metrics=["accuracy"])
         
-        model.fit(self.data, self.goal,batch_size= 35, epochs = 8000)
+        model.fit(self.data, self.goal,batch_size= 35, epochs = 10000)
         model.save("nnWeights/recommendations")
 
     def predict(self, genreValue, tagValue, recValue, animeScore):

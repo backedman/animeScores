@@ -37,8 +37,11 @@ class valManip(object):
 
         return name
 
-    def getPath(stat):
-        Path = os.getcwd() + "/Data/" + stat + "/"
+    def getPath(stat=None):
+        if(stat==None):
+            Path = os.getcwd() + "/Data/"
+        else:
+            Path = os.getcwd() + "/Data/" + stat + "/"
         os.makedirs(Path, exist_ok=True)
 
         return Path

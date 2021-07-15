@@ -36,4 +36,7 @@ class Search(object):
            listVal = list['entries'][x]['media']['title']['userPreferred']
 
            if(valManip.makeCompareable(listVal) == valManip.makeCompareable(target)): #returns index if value is found
-               return x
+             #print("OMG THE BINARY SEARCH BROKE!!!")
+             return x
+
+       return -1

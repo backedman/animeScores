@@ -10,6 +10,7 @@ from runnables.config import *
 from Algorithms.Sort import *
 from Algorithms.Search import *
 from Algorithms.valManip import *
+from datetime import date
 
 
 animeListPTW = []
@@ -123,12 +124,9 @@ class animeList():
         
         global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
         if(user == ""):
-            print("here")
             userName = AniListAccess.getUserName()
         else:
             userName = user
-
-        print(userName)
 
         #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
         query = '''
@@ -458,6 +456,117 @@ class animeList():
         #returns anime results list
         animeData = (AniListAccess.getData(query,variables))['data']['Page']
         return animeData
+
+    def getAllAnime(remNonPTW=False):
+        '''gets all the anime that's ever been released'''
+        global animeListAll
+
+        Path = valManip.getPath() + "data.txt" #creates path to store the list of all anime 
+
+        if(os.path.exists(Path)): #accesses data in file if the file exists and returns it, if the file does not exist, the data is scraped from the api
+            with open(Path, "r+") as json_file:
+                animeData = json.load(json_file)
+
+            if(remNonPTW == True): #iterates through each anime in the database and removes the ones that are already in the list and completed/dropped
+
+                index = 0
+
+                while(index < len(animeData)):
+                    anime = animeData[index]
+                    if(anime['mediaListEntry'] != None):
+                        status = anime['mediaListEntry']['status']
+                        if(status != "PLANNING" and status != "PAUSED" and status != "CURRENT"):
+                            animeData.pop(index)
+                            index -= 1
+                    index += 1
+
+            return animeData
+
+        query = '''
+            {
+                '''
+        variables = {
+            }
+
+        item = 0
+        animeData = []
+        for year in range(1940, date.today().year + 1): #accesses all anime from 1940 to present day
+            print(year)
+            for page in range(1,13): #12 pages for each year (600 anime per year)
+                query += (''' item%d: Page(page: %d) { 
+                                media(type: ANIME, seasonYear: %d){ 
+                                    title{ 
+                                        userPreferred
+                                    }
+                                    recommendations{
+						                edges{
+						                    node{
+                                                rating
+							                    mediaRecommendation{
+								                    title{
+									                    userPreferred
+								                    }
+							                    }
+						                    }
+						                }
+					                }
+                                    tags{
+                                        name
+                                        rank
+                                    }
+                                    genres
+                                    averageScore
+                                    mediaListEntry {
+                                        status
+                                    }
+                                }
+                            }
+
+                           ''' % (item, page, year))
+                item += 1
+
+            if((date.today().year - year)%2 == 0): #queries the data in 2 year increments (API's call limit only allows for 2 years due to the amount of information we pull)
+                query += "}"
+                item = 0
+
+                queryData = (AniListAccess.getData(query,variables))['data']
+
+                for x in range(0, len(queryData)): #adds the data from each page into the full database
+                    itemstring = 'item%d' % x
+                    pageData = queryData[itemstring]['media']
+
+                    if(pageData == []):
+                        continue
+
+                    animeData += pageData
+
+
+                query = '''
+                    {
+                    '''
+
+        
+        with open(Path, "w+") as json_file: #saves data to file
+            json.dump(animeData, json_file, indent = 4, ensure_ascii = True)
+            json_file.seek(0)
+
+        
+        if(remNonPTW == True): #iterates through each anime in the database and removes the ones that are already in the list and completed/dropped
+
+            index = 0
+
+            while(index < len(animeData)):
+                anime = animeData[index]
+                if(anime['mediaListEntry'] != None):
+                    status = anime['mediaListEntry']['status']
+                    if(status != "PLANNING" and status != "PAUSED" and status != "CURRENT"):
+                        animeData.pop(index)
+                        index -= 1
+                index += 1
+
+        return animeData #returns data
+                
+                
 
     def getAllGenreTags():
         '''returns all possible genres and tags available on anilist. Index 0 contains genres and Index 1 contains tags'''

@@ -38,38 +38,36 @@ class recommendations():
 
         for anime in detListPTW:
 
-            animeName = anime['media']['title']['userPreferred']
-            animeScore = anime['media']['averageScore']
+            animeName = anime['title']['userPreferred']
+            animeScore = anime['averageScore']
             genreValue = 0
             tagValue = 0
             recValue = 0
 
             if(animeScore is not None): #if the anime has released (it has been scored by other people), get score prediction
 
-                for genres in anime['media']['genres']:
+                for genres in anime['genres']:
 
                     try:
                         if genres in genreListStat:
-                            for genreScore in genreListStat[genres]:
-                                genreValue += genreScore
+                            genreValue = np.sum(genreListStat[genres])/math.sqrt(len(genreListStat[genres]))
                     except:
                         continue
 
 
-                for tags in anime['media']['tags']:
+                for tags in anime['tags']:
 
                     tagTitle = tags['name']
                     
                     try:
                         if tagTitle in tagListStat:
-                            for tagScore in tagListStat[tagTitle]:
-                                tagValue += tagScore
+                            tagValue = np.sum(tagListStat[tagTitle])/math.sqrt(len(tagListStat[tagTitle]))
                     except:
                         continue
                 
                 try:
                     if animeName in recListStat:
-                        recValue = np.sum(recListStat[animeName])
+                        recValue = np.sum(recListStat[animeName])/math.sqrt(len(recListStat[animeName]))
                 except:
                     continue
 
@@ -126,10 +124,13 @@ class recommendations():
     def getGenreTagValues():
 
         animeListDet = animeList.getAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
-        
+        detListPTW = {}
+
         for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
             if(animeListDet[status]['status'] == "PLANNING"):
                 detListPTW = animeListDet[status]['entries']
+
+        detListPTW = animeList.getAllAnime(True)
 
         #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
         genreListStat = {}
@@ -182,7 +183,7 @@ class recommendations():
                 for recommendation in detAnime['media']['recommendations']['edges']:
                     recommendation = recommendation['node']
 
-                    print(recommendation)
+                    #print(recommendation)
 
                     try:
                         rating = recommendation['rating']
@@ -235,7 +236,7 @@ class recommendations():
             size = len(currGenre)
             multi = (1 + ((float(size)/6)/animeCount))
             mean = np.mean(currGenre)
-            print(genres + ": " + str(mean))
+            #print(genres + ": " + str(mean))
             mean = mean * multi / 5
 
             if(mean >= 0):
@@ -246,8 +247,8 @@ class recommendations():
                 genreListStat[genres] = 1/abs(mean - 1)
 
             
-            print("      value: " + str(genreListStat[genres]))
-            print("      multi: " + str(multi))
+            #print("      value: " + str(genreListStat[genres]))
+            #print("      multi: " + str(multi))
         
         #print(tagListStat)
 
@@ -262,6 +263,7 @@ class recommendations():
             #if(len(currTag) < 2):
             #    tagListStat[tags] = 0
             #    continue
+
             midPoint = int(len(currTag)/2)
             median = currTag[midPoint]
             size = len(currTag)
@@ -274,68 +276,72 @@ class recommendations():
             else:
                 tagListStat[tags] = math.sqrt(abs(mean)) * -1
 
-            print(tags + ": " + str(mean))
-            print("      multi: " + str(tagListStat[tags]))
+            #print(tags + ": " + str(mean))
+            #print("      multi: " + str(tagListStat[tags]))
         
 
         #looks through the Planning list and uses the genres as multipliers to find the closest anime
         listRec = {}
 
-        for anime in detListPTW:
-            #print(anime)
-            animeMultiplierGenre = 1
-            animeMultiplierTag = 1
-            animeMultiplierRec = 1
-            animeScore = anime['media']['averageScore']
-            animeName = anime['media']['title']['userPreferred']
 
-            if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
+        with tqdm(total = len(detListPTW)) as pbar:
+            for anime in tqdm(detListPTW):
+                #print(anime)
+                animeMultiplierGenre = 1
+                animeMultiplierTag = 1
+                animeMultiplierRec = 1
+                animeScore = anime['averageScore']
+                animeName = anime['title']['userPreferred']
 
-                for genres in anime['media']['genres']:
+                if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
-                    if genres in genreListStat:
-                        animeMultiplierGenre *= genreListStat[genres]
+                    for genres in anime['genres']:
 
-                for tags in anime['media']['tags']:
-                    tagTitle = tags['name']
+                        if genres in genreListStat:
+                            animeMultiplierGenre *= genreListStat[genres]
+
+                    for tags in anime['tags']:
+                        tagTitle = tags['name']
                     
-                    if tagTitle in tagListStat:
-                        animeMultiplierTag += tagListStat[tagTitle]/10
+                        if tagTitle in tagListStat:
+                            animeMultiplierTag += tagListStat[tagTitle]/10
                 
-                    if animeMultiplierTag < 1:
-                        animeMultiplierTag = abs(1/animeMultiplierTag)
-                try:
-                    if animeName in recListStat:
-                        animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
-                        if(animeMultiplierRec >= 0):
-                            animeMultiplierRec += 1
-                        elif(animeMultiplierRec < 0):
-                            animeMultiplierRec -=1
-                except:
-                    animeMultiplierRec = 1
-
-                if animeMultiplierRec < 1:
-                    animeMultiplierRec = abs(1/animeMultiplierTag)
-
-                animeMultiplier = animeMultiplierGenre * animeMultiplierTag
-
-                animeMultiplier *= animeMultiplierRec ** 0.3
-
-                if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
+                        if animeMultiplierTag < 1:
+                            animeMultiplierTag = abs(1/animeMultiplierTag)
                     try:
-                        animeMultiplier = math.pow(animeMultiplier, 1/3)
+                        if animeName in recListStat:
+                            animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
+                            if(animeMultiplierRec >= 0):
+                                animeMultiplierRec += 1
+                            elif(animeMultiplierRec < 0):
+                                animeMultiplierRec -=1
                     except:
-                        print(animeMultiplier)
+                        animeMultiplierRec = 1
+
+                    if animeMultiplierRec < 1:
+                        animeMultiplierRec = abs(1/animeMultiplierTag)
+
+                    animeMultiplier = animeMultiplierGenre * animeMultiplierTag
+
+                    animeMultiplier *= animeMultiplierRec ** 0.3
+
+                    if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
+                        try:
+                            animeMultiplier = math.pow(animeMultiplier, 1/3)
+                        except:
+                            pass
 
                 
 
-                print("      name: " + str(anime['media']['title']['userPreferred']))
-                print("genres" + str(anime['media']['genres']))
-                print("animeScore: " + str(animeScore))
-                print("animeMultiplier: " + str(animeMultiplier))
-                animeValue = animeMultiplier * anime['media']['averageScore']
+                    #print("      name: " + str(anime['title']['userPreferred']))
+                    #print("genres" + str(anime['genres']))
+                    #print("animeScore: " + str(animeScore))
+                    #print("animeMultiplier: " + str(animeMultiplier))
+                    animeValue = animeMultiplier * anime['averageScore']
             
-                listRec[anime['media']['title']['userPreferred']] = animeValue
+                    listRec[anime['title']['userPreferred']] = animeValue
+
+                pbar.update(1)
 
         sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 

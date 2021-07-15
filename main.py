@@ -272,7 +272,6 @@ def main():
                             if(runWithout):
                                 stats = numpy.array([epCount, avgScore, baseSpeedDev, epScoreDev])
                                 stats = numpy.reshape(stats, (-1, 4))
-                                print("here")
                                 prediction = neuralNet.predictNoImpact(stats)
 
                                 print("nnScorenoImpact: " + str(prediction))
@@ -355,7 +354,7 @@ def main():
 
 def addSpacing():
     for x in range(50):
-        print("              ")
+       print("              ")
 
 
 
