@@ -25,19 +25,22 @@ class animeFile:
     realScore = 0
     impactScore = -1
     speedChangeable = False
-    
+    duration = 22
 
 
 
     """makes anime file and data that will go in there"""
-    def __init__(self, animeName, status):
+    def __init__(self, animeName, status, prompt=True):
         Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
         
         #gets detailed information about anime from api
         aniData = animeList.getAnimeDetailed(animeName)
-            #fixes errors from specific case
+
+        #fixes errors from specific case
         if aniData['episodes'] == None:
-           aniData['episodes'] = 0
+            epTotal = 0
+        else:
+            epTotal = aniData['episodes']
         
         #creates list to store user anime data
         Data = {'Info' : {}, 'Episodes' : {}}
@@ -50,7 +53,7 @@ class animeFile:
                         'Status' : status,
                         'Episode Count' : {
                                 'Current' : 0,
-                                'Total' : aniData["episodes"]
+                                'Total' : epTotal
                             },
                         'Base Speed' : config.getBaseSpeed(),
                         'Score' : {
@@ -67,6 +70,7 @@ class animeFile:
                     json.dump(Data, json_file, indent = 4, ensure_ascii = True)
                     json_file.seek(0)
                     Data = json.load(json_file)
+
         #make list using data from file if file exists
         else:
 
@@ -81,17 +85,19 @@ class animeFile:
         self.animeName = animeName
         self.Path = Path
         self.epCurrent = Data['Info']['Episode Count']['Current']
-        self.epTotal = Data['Info']['Episode Count']['Total']
+        self.epTotal = epTotal
         self.baseSpeed = Data['Info']['Base Speed']
         self.avgScore = Data['Info']['Score']['Average Score']
         self.scaledScore = Data['Info']['Score']['Scaled Score']
         self.nnScore = Data['Info']['Score']['NN Score']
         self.realScore = Data['Info']['Score']['Real Score']
         self.impactScore = Data['Info']['Impact Rating']
+        self.duration = aniData['duration']
         self.speedChangeable = config.getSpeedChangeable()
 
         #Shows prompt for user
-        self.userPrompt()
+        if(prompt == True):
+            self.userPrompt()
 
         #writes to file and updates stats 
         self.writeToFile()
@@ -184,8 +190,6 @@ class animeFile:
 
             #updates data list in instance
             self.Data = Data
-        
-
 
             self.writeToFile()
 
@@ -444,7 +448,8 @@ class animeFile:
         Data['Info']['Score']['Average Score'] = valManip.round(self.avgScore, 2)
         Data['Info']['Score']['Scaled Score'] = valManip.round(self.scaledScore, 2)
         Data['Info']['Score']['NN Score'] = valManip.round(self.nnScore, 2)
-        self.impactScore = Data['Info']['Impact Rating'] = self.impactScore
+        Data['Info']['Impact Rating'] = self.impactScore
+        Data['Info']['Episode Length'] = self.duration
         Data['Info']['Score']['Real Score'] = self.realScore
 
         #writes to file
