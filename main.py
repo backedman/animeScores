@@ -99,7 +99,7 @@ def main():
             animeName = input()
             titleList = animeList.getAnimeSearchList(animeName, 5)
 
-        elif (ans == "R" or ans == "R"):
+        elif (ans == "R" or ans == "r"):
             print("1. Normal (recommended)")
             print("2. Experimental")
 
