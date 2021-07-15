@@ -96,49 +96,7 @@ def main():
         elif (ans == "S" or ans == "s"):
             print("Name of anime to search")
             animeName = input()
-            listResults = animeList.getAnimeSearchList(animeName, 5)['media']
-
-            sPage = 1
-            sMaxPage = int(len(listResults) / 9 + 1.5)
-
-            # shows anime search results in a list user can choose options from
-            while (True):
-
-                print("Page " + str(sPage) + "/" + str(sMaxPage))
-                for x in range(1, 10):
-                    if (x <= len(listResults) - (sPage - 1) * 9):
-                        listIndex = x - 1 + (sPage - 1) * 9
-                        listAnime = listResults[listIndex]['title']['userPreferred']
-                        print(str(x) + "." + str(listAnime))
-                print("Q. Previous Page ")
-                print("E. Next Page")
-                print("A. Choose Page")
-                print("X. Go back")
-                print("\n\n\n\n\n\n\n\n\n\n")
-
-                ans = str(input())
-
-                # goes back a page if user chooses "Q"
-                if (ans == "Q" or ans == "q"):
-                    sPage -= 1
-
-                # goes forward a page if user chooses "E"
-                elif (ans == "E" or ans == "e"):
-                    sPage += 1
-
-                # goes to user specified page
-                elif (ans == "A" or ans == "a"):
-                    sPage = int(input())
-
-                # selects choice based on user input
-                elif (ans == "x" or ans == "X"):
-                    break;
-
-                elif (int(ans) < 10 and int(ans) > 0):
-                    listIndex = int(ans) - 1 + (sPage - 1) * 9
-                    animeName = listResults[listIndex]['title']['userPreferred']
-
-                    aniShow = animeFile(animeName, status)
+            titleList = animeList.getAnimeSearchList(animeName, 5)
 
         elif (ans == "F" or ans == "f"):
             print("1. Normal")
@@ -158,6 +116,7 @@ def main():
             
             # asks user for input
             print("1. Open another list")
+            print("2. refresh anime lists")
             print("2. Mass update scores")
             print("3. Neural Network")
             print("4. predict score of anime (using the recommendations algorithm)")
@@ -194,12 +153,17 @@ def main():
                 page = 1
                 maxPage = int((len(titleList) / 9 + 1.5))
 
-            elif(ans == 2):
+            elif(ans == 2): #refreshes the lists
+                aniList = animeList.updateAniListAnimeList()
+                animeList.updateFiles()
+                titleList = animeList.getTitleList(status)
+
+            elif(ans == 3): #mass updates the scores
 
                 updateAnime.massUpdateNNScore()
                 updateAnime.massUpdateScore()
 
-            elif(ans == 3):
+            elif(ans ==4): #prompts neural network options
 
                 print("1. run with Impact Rating")
                 print("2. run without Impact Rating")

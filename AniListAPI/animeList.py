@@ -454,7 +454,15 @@ class animeList():
             }
 
         #returns anime results list
-        animeData = (AniListAccess.getData(query,variables))['data']['Page']
+        queryData = (AniListAccess.getData(query,variables))['data']['Page']['media']
+        
+        animeData = []
+
+        for anime in queryData:
+            print(anime)
+            animeTitle = anime['title']['userPreferred']
+            animeData.append(animeTitle)
+
         return animeData
 
     def getAllAnime(remNonPTW=False):
