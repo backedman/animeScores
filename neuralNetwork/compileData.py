@@ -81,7 +81,7 @@ class compileData(object):
 
         return data
 
-    def getSetsAll():
+    def getSetsAll(skipNoScores = True):
         '''gets the statistics and data for each file we have an anime for'''
 
 
@@ -106,7 +106,7 @@ class compileData(object):
                 realScore = compileData.getRealScore(aniFile)
                 impactRating = compileData.getImpactScr(aniFile)
 
-                if realScore == 0 or impactRating == -1:
+                if (realScore == 0 and skipNoScores == True) or impactRating == -1:
                     continue;
                 else:
                     stats.append(compileData.getEpisodeCount(aniFile))
@@ -115,6 +115,8 @@ class compileData(object):
                     stats.append(compileData.getBaseSpeedDev(aniFile))
                     stats.append(compileData.getAvgEpDev(aniFile))
                     realScores.append(realScore)
+
+           
 
 
         stats = numpy.array(stats)

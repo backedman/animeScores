@@ -6,6 +6,7 @@ import time
 import operator
 #from main import addSpacing
 from AniListAPI.AniListAccess import *
+from AniListAPI.AniListCalls import *
 from runnables.config import *
 from Algorithms.Sort import *
 from Algorithms.Search import *
@@ -29,581 +30,311 @@ class animeList():
 
 
 
-    def updateAniListAnimeList():
-        '''gets animeList from API and updates the anime list'''
-        
-        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
-        UserID = AniListAccess.getUserID()
+	def updateAniListAnimeList():
+		'''gets animeList from API and updates the anime list'''
+		
+		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
+		UserID = AniListAccess.getUserID()
 
-        #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
-        query = '''
-        query ($userID: Int)  {
-                MediaListCollection(userId : $userID,  type: ANIME) {
-                    
-                    lists{
-                        status
-                        entries{
-                            id
-                            media {
-                                id
-  	                            title{
-                                    userPreferred
-                                }
-                                mediaListEntry {
-                                    status
-                                    score
-                                }
-  	                        }
-                        }
-                    }
-                }
-        }
-        '''
-        
-        #sets correct information for the query. If all anime in the list are wanted, then status is not set
-        variables = {
-            'userID' : UserID,
-        }
-
-
-        #requests data from API into a list 
-        animeListData = AniListAccess.getData(query, variables)['data']
-        
+		#sets query to send to server.  This one asks for total number of
+		#pages, total anime, name of the anime in a page, and what list the
+		#anime is in
+		query = '''
+		query ($userID: Int)  {
+				MediaListCollection(userId : $userID,  type: ANIME) {
+					
+					lists{
+						status
+						entries{
+							id
+							media {
+								id
+								title{
+									userPreferred
+								}
+								mediaListEntry {
+									status
+									score
+								}
+							}
+						}
+					}
+				}
+		}
+		'''
+		
+		#sets correct information for the query.  If all anime in the list are
+		#wanted, then status is not set
+		variables = {
+			'userID' : UserID,
+		}
 
 
-        #initializes variables
-        aniListLength = len(animeListData['MediaListCollection']['lists']) #amount of lists user has
-        statusTypes = []
-        animeListPTW = []
-        animeListCompleted = []
-        animeListDropped = []
-        animeListPaused = []
-        animeListRepeating = []
-        animeListCurrent = []
-        statusTypes = []
-            
-        for x in range(0, aniListLength): #x is index of array
+		#requests data from API into a list
+		animeListData = AniListAccess.getData(query, variables)['data']
+		
 
-            status = animeListData['MediaListCollection']['lists'][x]['status']    #gets status from the list
-            info = animeListData['MediaListCollection']['lists'][x]
-            statusTypes.append(status)
 
-            if(status == "PLANNING"):
-                animeListPTW = animeListData['MediaListCollection']['lists'][x]
-            elif(status == "COMPLETED"):
-                animeListCompleted = animeListData['MediaListCollection']['lists'][x]
-            elif(status == "DROPPED"):
-                animeListDropped = animeListData['MediaListCollection']['lists'][x]
-            elif(status == "PAUSED"):
-                animeListPaused = animeListData['MediaListCollection']['lists'][x]
-            elif(status == "REPEATING"):
-                animeListRepeating = animeListData['MediaListCollection']['lists'][x]
-            elif(status == "CURRENT"):
-                animeListCurrent = animeListData['MediaListCollection']['lists'][x]
+		#initializes variables
+		aniListLength = len(animeListData['MediaListCollection']['lists']) #amount of lists user has
+		statusTypes = []
+		animeListPTW = []
+		animeListCompleted = []
+		animeListDropped = []
+		animeListPaused = []
+		animeListRepeating = []
+		animeListCurrent = []
+		statusTypes = []
+			
+		for x in range(0, aniListLength): #x is index of array
 
-            
+			status = animeListData['MediaListCollection']['lists'][x]['status']    #gets status from the list
+			info = animeListData['MediaListCollection']['lists'][x]
+			statusTypes.append(status)
 
-        
+			if(status == "PLANNING"):
+				animeListPTW = animeListData['MediaListCollection']['lists'][x]
+			elif(status == "COMPLETED"):
+				animeListCompleted = animeListData['MediaListCollection']['lists'][x]
+			elif(status == "DROPPED"):
+				animeListDropped = animeListData['MediaListCollection']['lists'][x]
+			elif(status == "PAUSED"):
+				animeListPaused = animeListData['MediaListCollection']['lists'][x]
+			elif(status == "REPEATING"):
+				animeListRepeating = animeListData['MediaListCollection']['lists'][x]
+			elif(status == "CURRENT"):
+				animeListCurrent = animeListData['MediaListCollection']['lists'][x]
 
-        #sorts all the lists in alphabetical order
-        Sort.qSort(animeListPTW)
-        Sort.qSort(animeListCompleted)
-        Sort.qSort(animeListDropped)
-        Sort.qSort(animeListPaused)
-        Sort.qSort(animeListRepeating)
-        Sort.qSort(animeListCurrent)
+			
 
-        animeList.setAnimeListAll() #adds all the other lists into one big list
-        Sort.qSort(animeListAll)
+		
+
+		#sorts all the lists in alphabetical order
+		Sort.qSort(animeListPTW)
+		Sort.qSort(animeListCompleted)
+		Sort.qSort(animeListDropped)
+		Sort.qSort(animeListPaused)
+		Sort.qSort(animeListRepeating)
+		Sort.qSort(animeListCurrent)
+
+		animeList.setAnimeListAll() #adds all the other lists into one big list
+		Sort.qSort(animeListAll)
 
  
-        pass
+		pass
 
-    def updateAnimeListDet(user):
-        '''gets animeLists from API'''
-        
-        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
-        if(user == ""):
-            userName = AniListAccess.getUserName()
-        else:
-            userName = user
+	def updateAnimeListDet(user, sort="ID"):
+		'''gets animeLists from API'''
+		
+		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
+		if(user == ""):
+			userName = AniListAccess.getUserName()
+		else:
+			userName = user
 
-        #sets query to send to server. This one asks for total number of pages, total anime, name of the anime in a page, and what list the anime is in
-        query = '''
-        query ($userName: String)  {
-                MediaListCollection(userName : $userName,  type: ANIME) {
-                    
-                     lists {
-                          
-                          status
+		#sets query to send to server.  This one asks for total number of
+		#pages, total anime, name of the anime in a page, and what list the
+		#anime is in
+		query = '''
+		query ($userName: String, $sortType: MediaListSort)  {
+				MediaListCollection(userName : $userName,  type: ANIME, sort: $sortType) {
+					
+					 lists {
+						  
+						  status
 
-                          entries {
+						  entries {
 
-                            mediaId
-                            media {
-                              title{
-                                userPreferred
-                              }
+							mediaId
+							media {
+							  title{
+								userPreferred
+							  }
 
-                              genres
+							  genres
 
-                              tags{
-                                name
-                                rank
-                                category
-                              }
+							  tags{
+								name
+								rank
+								category
+							  }
 
-                              averageScore
-                              popularity
+							  averageScore
+							  popularity
 
-                              mediaListEntry {
-                                score
-                              }
+							  mediaListEntry {
+								score
+							  }
 
-                              recommendations{
-						        edges{
-						            node{
-                                        rating
-							            mediaRecommendation{
-								            title{
-									            userPreferred
-								            }
-							            }
-                                    }
+							  recommendations{
+								edges{
+									node{
+										rating
+										mediaRecommendation{
+											title{
+												userPreferred
+											}
+										}
+									}
 						}
 					}
 
-                            }
+							}
 
-                          }
-    }
-                }
-        }
-        '''
-        
-        #sets correct information for the query. If all anime in the list are wanted, then status is not set
-        variables = {
-            'userName' : userName,
-        }
+						  }
+	}
+				}
+		}
+		'''
+		
+		#sets correct information for the query.  If all anime in the list are
+		#wanted, then status is not set
+		variables = {
+			'userName' : userName,
+			'sortType' : sort
+		}
 
-        #requests data from API into a list 
-        animeListData = AniListAccess.getData(query, variables)['data']['MediaListCollection']['lists']
+		#requests data from API into a list
+		animeListData = AniListAccess.getData(query, variables)['data']['MediaListCollection']['lists']
 
-        if(user == "" or user == AniListAccess.getUserName()):
-            animeListDet = animeListData
+		if(user == "" or user == AniListAccess.getUserName()):
+			animeListDet = animeListData
 
-        return animeListData
-
-    def updateFiles():
-        '''opens all the files and move them to the correct folder'''
-
-        global animeListAll, statusTypes, listAll
-
-        iterator = 0
-        for status in statusTypes: #iterates through different statuses
-
-            Path = valManip.getPath(status)
-            files = os.listdir(Path)
-            listAll[iterator]
-
-
-            for aniFileName in files: #gets name of each file
-
-                aniFileDir = Path + aniFileName
-
-                with open(aniFileDir, "r+") as json_file: #opens each files and reads them
-                    aniFile = json.load(json_file)
-                    animeName = aniFile['Info']['Anime Name']
-                    aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
-
-                    try:
-                        aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
-
-                    except TypeError: #if the anime from file cannot be found in the data brought in from the api, it throws an error message to check for later
-                        print("ERROR COULD NOT FIND " + animeName)
-
-                if(status != aniListStatus):
-
-                    aniFile['Info']['Status'] = aniListStatus #changes status listed in file
-
-                    fileName = valManip.makeSafe(animeName)
-
-                    oPath = aniFileDir
-                    nPath = valManip.getPath(aniListStatus) + fileName + ".txt"
-
-                    os.rename(oPath, nPath) #moves file to correct directory
-
-                    with open(nPath, "w+") as json_file:
-                        json.dump(aniFile, json_file, indent = 4, ensure_ascii = True)
-
-                        
-            iterator += 1
-        
-
-    def setAnimeListAll():
-        '''adds the entries of all the lists to animeListAll'''
-        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, listAll
-        
-        listAll = [animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent]
-
-
-        animeListAll = []
-        animeListAll = {
-            'status' : 'ALL',
-            'entries' : [],
-            }
-
-
-        for x in range(0, len(listAll)): #iterates through the amount of lists (PTW, Completed, Dropped, etc.) 
-            
-            if(len(listAll[x]) == 0): #moves to the next list if list does not exist (user has no anime in that list)
-                listAll.pop(x)
-            
-            aniListLen = len(listAll[x]['entries'])
-
-            for y in range(0, aniListLen): #iterates through entries in the list, adding them to the all list
-                animeEntry = listAll[x]['entries'][y]
-                animeListAll['entries'].append(animeEntry)
-
-        pass
+		return animeListData
 
 
 
+		
+		
+
+	def setAnimeListAll():
+		'''adds the entries of all the lists to animeListAll'''
+		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, listAll
+		
+		listAll = [animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent]
 
 
-
-    
-
-
-        
-
-
+		animeListAll = []
+		animeListAll = {
+			'status' : 'ALL',
+			'entries' : [],
+			}
 
 
+		for x in range(0, len(listAll)): #iterates through the amount of lists (PTW, Completed, Dropped, etc.)
+			
+			if(len(listAll[x]) == 0): #moves to the next list if list does not exist (user has no anime in that
+									  #list)
+				continue
+			
+			aniListLen = len(listAll[x]['entries'])
+
+			for y in range(0, aniListLen): #iterates through entries in the list, adding them to the all list
+				animeEntry = listAll[x]['entries'][y]
+				animeListAll['entries'].append(animeEntry)
+				print(animeEntry)
+
+		pass
 
 
 #
 #                                below are all the get methods
 #
-    
-    def getAnimeList(status):
-        '''returns anime list with all information based on status'''
+	
+	def getAnimeList(status):
+		'''returns anime list with all information based on status'''
 
-        global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll
+		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll
 
-        #sets correct list based on status
-        if(status == "PLANNING"):
-            return animeListPTW
-        elif(status == "COMPLETED"):
-            return animeListCompleted
-        elif(status == "DROPPED"):
-            return animeListDropped
-        elif(status == "PAUSED"):
-            return animeListPaused
-        elif(status == "REPEATING"):
-            return animeListRepeating
-        elif(status == "CURRENT"):
-            return animeListCurrent
-        elif(status == "ALL"):
-            print(animeListAll)
-            return animeListAll
+		#sets correct list based on status
+		if(status == "PLANNING"):
+			return animeListPTW
+		elif(status == "COMPLETED"):
+			return animeListCompleted
+		elif(status == "DROPPED"):
+			return animeListDropped
+		elif(status == "PAUSED"):
+			return animeListPaused
+		elif(status == "REPEATING"):
+			return animeListRepeating
+		elif(status == "CURRENT"):
+			return animeListCurrent
+		elif(status == "ALL"):
+			return animeListAll
 
-        pass
+		pass
 
-    def getTitleList(status):
-        '''returns a list containing only the names of the anime'''
-        
-        #gets correct list
-        animeListStat = []
-        animeListStat = animeList.getAnimeList(status)['entries']
+	def getTitleList(status):
+		'''returns a list containing only the names of the anime'''
+		
+		#gets correct list
+		animeListStat = []
+		animeListStat = animeList.getAnimeList(status)['entries']
 
-        #sets variables for loop
-        titleList = []
-        index = 0
-
-
-        #adds names of anime to title list
-        for x in animeListStat:
-            animeTitle = animeListStat[index]['media']["title"]["userPreferred"]
-            titleList.append(animeTitle)
-            index += 1
-        titleList.sort()
-        return titleList    
-        
-    
-    
-        pass
+		#sets variables for loop
+		titleList = []
+		index = 0
 
 
-    def getAnimeListSorted(aniList):
-        '''returns an alphabetically sorted anime list'''
-        return Sort.qSort(aniList)
+		#adds names of anime to title list
+		for x in animeListStat:
+			animeTitle = animeListStat[index]['media']["title"]["userPreferred"]
+			titleList.append(animeTitle)
+			index += 1
+		titleList.sort()
+		return titleList    
+		
+	
+	
+		pass
 
-    
-    def getAnimeDetailed(animeName):
-        '''gets detailed list of anime'''
 
-        #sets query and variables to get anime from API
-        query = '''
-            query($animeName : String) {
-                Media(search : $animeName, type: ANIME)
-                {
-                    title{
-                        userPreferred
-                    }
-                    tags{
-                        name
-                        rank
-                    }
-                    episodes
-                    genres
-                    duration
-                    averageScore
-                    meanScore
-                    favourites
-					recommendations{
-						edges{
-						    node{
-                                rating
-							    mediaRecommendation{
-								    title{
-									    userPreferred
-								    }
-							    }
-						    }
-						}
-					}
-                }
-            }
-            '''
-        variables = {
-            'animeName' : animeName
-        }
+	def getAnimeListSorted(aniList):
+		'''returns an alphabetically sorted anime list'''
+		return Sort.qSort(aniList)
+
+	
 
 
 
-        #returns json data of anime
-        animeData = (AniListAccess.getData(query, variables))['data']['Media']
 
-        return animeData
+		#returns json data of anime
+		animeData = (AniListAccess.getData(query, variables))['data']['Media']
 
-    def getAnimeListDet():
-        global animeListDet
+		return animeData
 
-        if(animeListDet == []):
-            return animeList.updateAnimeListDet("")
-        else:
-            return animeListDet
+	def getAnimeListDet():
+		global animeListDet
 
-    def getAnimeSearch(animeName):
-        '''gets first search result of anime search'''
-        query = '''
-            query($animeName : String) {
-                Media(search : $animeName, type: ANIME)
-                {
-                    title{
-                        userPreferred
-                    }
-                    episodes                  
-                    duration
-
-                }
-            }
-            '''
-        variables = {
-            'animeName' : animeName
-        }
-        
-            #returns data of anime
-        animeData = (AniListAccess.getData(query, variables))['data']['Media']
-        return animeData
-
-    def getEntryId(animeName):
-        '''gets list entry ID (required to change anything related to the anime on the website)'''
-        global animeListAll
-
-        aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
-
-        entryId = animeListAll['entries'][aniLoc]['id'] #gets the entry ID of the specific anime in the list
-
-        return entryId
+		if(animeListDet == []):
+			return animeList.updateAnimeListDet("")
+		else:
+			return animeListDet
 
 
-    def getAnimeSearchList(animeName, numResults):
-        '''gets multiple search results'''
-        
-        query = '''
-            query ($animeName: String, $perPage: Int)  {
-            Page(perPage : $perPage){
-  	                media(search : $animeName, type : ANIME)
-                    {
-                        title{
-                            userPreferred
-                        }
-                        episodes                  
-                        duration
-                    }
-                }
-            }
-        '''
-        variables = {
-                'animeName' : animeName,
-                'perPage' : numResults
-            }
 
-        #returns anime results list
-        queryData = (AniListAccess.getData(query,variables))['data']['Page']['media']
-        
-        animeData = []
+	def getEntryId(animeName):
+		'''gets list entry ID (required to change anything related to the anime on the website)'''
+		global animeListAll
 
-        for anime in queryData:
-            print(anime)
-            animeTitle = anime['title']['userPreferred']
-            animeData.append(animeTitle)
+		aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
 
-        return animeData
+		if(aniLoc == None):
 
-    def getAllAnime(remNonPTW=False):
-        '''gets all the anime that's ever been released'''
-        global animeListAll
+			return None
 
-        Path = valManip.getPath() + "data.txt" #creates path to store the list of all anime 
+		else:
 
-        if(os.path.exists(Path)): #accesses data in file if the file exists and returns it, if the file does not exist, the data is scraped from the api
-            with open(Path, "r+") as json_file:
-                animeData = json.load(json_file)
+			entryId = animeListAll['entries'][aniLoc]['id'] #gets the entry ID of the specific anime in the list
 
-            if(remNonPTW == True): #iterates through each anime in the database and removes the ones that are already in the list and completed/dropped
+		return entryId
 
-                index = 0
+	def getMediaId(animeName):
 
-                while(index < len(animeData)):
-                    anime = animeData[index]
-                    if(anime['mediaListEntry'] != None):
-                        status = anime['mediaListEntry']['status']
-                        if(status != "PLANNING" and status != "PAUSED" and status != "CURRENT"):
-                            animeData.pop(index)
-                            index -= 1
-                    index += 1
-
-            return animeData
-
-        query = '''
-            {
-                '''
-        variables = {
-            }
-
-        item = 0
-        animeData = []
-        for year in range(1940, date.today().year + 1): #accesses all anime from 1940 to present day
-            print(year)
-            for page in range(1,13): #12 pages for each year (600 anime per year)
-                query += (''' item%d: Page(page: %d) { 
-                                media(type: ANIME, seasonYear: %d){ 
-                                    title{ 
-                                        userPreferred
-                                    }
-                                    recommendations{
-						                edges{
-						                    node{
-                                                rating
-							                    mediaRecommendation{
-								                    title{
-									                    userPreferred
-								                    }
-							                    }
-						                    }
-						                }
-					                }
-                                    tags{
-                                        name
-                                        rank
-                                    }
-                                    genres
-                                    averageScore
-                                    mediaListEntry {
-                                        status
-                                    }
-                                }
-                            }
-
-                           ''' % (item, page, year))
-                item += 1
-
-            if((date.today().year - year)%2 == 0): #queries the data in 2 year increments (API's call limit only allows for 2 years due to the amount of information we pull)
-                query += "}"
-                item = 0
-
-                queryData = (AniListAccess.getData(query,variables))['data']
-
-                for x in range(0, len(queryData)): #adds the data from each page into the full database
-                    itemstring = 'item%d' % x
-                    pageData = queryData[itemstring]['media']
-
-                    if(pageData == []):
-                        continue
-
-                    animeData += pageData
+		return AniListCalls.getAnimeSearch(animeName)['id']
 
 
-                query = '''
-                    {
-                    '''
 
-        
-        with open(Path, "w+") as json_file: #saves data to file
-            json.dump(animeData, json_file, indent = 4, ensure_ascii = True)
-            json_file.seek(0)
-
-        
-        if(remNonPTW == True): #iterates through each anime in the database and removes the ones that are already in the list and completed/dropped
-
-            index = 0
-
-            while(index < len(animeData)):
-                anime = animeData[index]
-                if(anime['mediaListEntry'] != None):
-                    status = anime['mediaListEntry']['status']
-                    if(status != "PLANNING" and status != "PAUSED" and status != "CURRENT"):
-                        animeData.pop(index)
-                        index -= 1
-                index += 1
-
-        return animeData #returns data
-                
-                
-
-    def getAllGenreTags():
-        '''returns all possible genres and tags available on anilist. Index 0 contains genres and Index 1 contains tags'''
-        global genreTags
-
-        query = '''
-            {
-                GenreCollection
-                MediaTagCollection{
-                    name
-                }
-            }
-        '''
-
-        variables = {
-            }
-
-        #returns anime results list
-        animeData = (AniListAccess.getData(query,variables)['data'])
-
-        #splits tags and genres into seperate lists
-        genre = animeData['GenreCollection']
-        tags = animeData['MediaTagCollection']
-
-        #removes the 'name' portion in the list to make it identical to the genre list
-        for x in range(0, len(tags)):
-            tags[x] = tags[x]['name']                   
-
-        genreTags = [genre, tags]
-
-        return genreTags
 
 
 

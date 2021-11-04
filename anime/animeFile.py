@@ -4,7 +4,7 @@ import os
 import math
 import numpy
 from runnables.config import *
-from AniListAPI.updateAnime import *
+from AniListAPI.AniListCalls import *
 from AniListAPI.updateAnime import *
 from Algorithms.valManip import *
 from neuralNetwork.neuralNet import *
@@ -15,6 +15,7 @@ class animeFile:
     aniData = []
     status = ""
     animeName = ""
+    animeId = 0
     Path = ""
     epCurrent = 0
     epTotal = 0
@@ -34,13 +35,7 @@ class animeFile:
         Path = valManip.getPath(status) + valManip.makeSafe(animeName) + ".txt"
         
         #gets detailed information about anime from api
-        aniData = animeList.getAnimeDetailed(animeName)
-
-        #fixes errors from specific case
-        if aniData['episodes'] == None:
-            epTotal = 0
-        else:
-            epTotal = aniData['episodes']
+        aniData = AniListCalls.getAnimeDetailed(animeName)
         
         #creates list to store user anime data
         Data = {'Info' : {}, 'Episodes' : {}}
@@ -50,10 +45,11 @@ class animeFile:
         
         if not exists:
             Data['Info'] = {'Anime Name' : animeName,
+                            'Anime ID' : aniData['id'],
                         'Status' : status,
                         'Episode Count' : {
                                 'Current' : 0,
-                                'Total' : epTotal
+                                'Total' : aniData['episodes']
                             },
                         'Base Speed' : config.getBaseSpeed(),
                         'Score' : {
@@ -83,9 +79,10 @@ class animeFile:
         self.aniData = aniData
         self.status = status
         self.animeName = animeName
+        self.animeId = aniData['id']
         self.Path = Path
         self.epCurrent = Data['Info']['Episode Count']['Current']
-        self.epTotal = epTotal
+        self.epTotal = aniData['episodes']
         self.baseSpeed = Data['Info']['Base Speed']
         self.avgScore = Data['Info']['Score']['Average Score']
         self.scaledScore = Data['Info']['Score']['Scaled Score']
@@ -95,12 +92,17 @@ class animeFile:
         self.duration = aniData['duration']
         self.speedChangeable = config.getSpeedChangeable()
 
+        #writes to file and updates stats
+        self.writeToFile()
+        self.updateStats()
+
         #Shows prompt for user
         if(prompt == True):
             self.userPrompt()
 
-        #writes to file and updates stats 
-        self.writeToFile()
+            #writes to file and updates stats
+            self.writeToFile()
+            self.updateStats()
 
         
 
@@ -132,7 +134,7 @@ class animeFile:
             elif(ans == "x" or ans == "X"):
                 self.writeToFile()
                 self.updateStats()
-                break;
+                break
         pass
 
     def recordStats(self):
@@ -212,11 +214,11 @@ class animeFile:
         impactScore = self.impactScore
 
         #iterates through each episode
-        for x in range (1, epCurrent + 1):
+        for x in range(1, epCurrent + 1):
 
             #get episode rating and speed
-            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
-            speed = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Speed'])
+            epRating = float(Data['Episodes'][x - 1]['Episode ' + str(x)]['Score'])
+            speed = float(Data['Episodes'][x - 1]['Episode ' + str(x)]['Speed'])
             difference = speed - self.baseSpeed
 
             #scales the score based on speed deviation from base speed
@@ -230,7 +232,7 @@ class animeFile:
                 total += epRating - (difference + 1)
 
             elif(difference > 2):
-                total += epRating - (difference/2 + 2)
+                total += epRating - (difference / 2 + 2)
 
             elif(difference < 0 and difference >= -0.25):
                 total += (epRating - 2 * difference)
@@ -239,13 +241,13 @@ class animeFile:
                 total += epRating + (math.log(abs(difference), 4) + 2)
 
         try:
-            score = total/epCurrent
+            score = total / epCurrent
         except:
             score = None
 
         #shifts score based on impact rating
         if(impactScore != -1):
-            score += (impactScore - 5)/5 * 12/epCurrent
+            score += (impactScore - 5) / 5 * 12 / epCurrent
         
         #saves score
         self.scaledScore = score
@@ -261,12 +263,12 @@ class animeFile:
 
         #iterates through episodes
         for x in range(1, epCurrent + 1):
-            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
+            epRating = float(Data['Episodes'][x - 1]['Episode ' + str(x)]['Score'])
             total += epRating
 
         #averages score
         try:
-            score = total/epCurrent
+            score = total / epCurrent
         except:
             score = None
             
@@ -284,13 +286,15 @@ class animeFile:
         avgScore = self.calcAvgScore()
         totalDev = 0
 
-        for x in range(1, epCurrent + 1): #adds up the difference between the episode's score and the average score for all episodes
+        for x in range(1, epCurrent + 1): #adds up the difference between the episode's score and the average score for
+                                          #all episodes
 
-            epRating = float(Data['Episodes'][x-1]['Episode ' + str(x)]['Score'])
+            epRating = float(Data['Episodes'][x - 1]['Episode ' + str(x)]['Score'])
             totalDev += (avgScore - epRating) ** 2
 
         try:
-            avgDev = totalDev/(epCurrent) #gets the average of the differences between the episode's score and average score
+            avgDev = totalDev / (epCurrent) #gets the average of the differences between the episode's score and average
+                                            #score
 
             avgDev = valManip.round(avgDev, 4)
 
@@ -299,7 +303,7 @@ class animeFile:
             return avgDev
         
         except ZeroDivisionError:
-            return None;
+            return None
 
 
     def getAvgSpeedDeviation(self):
@@ -311,13 +315,14 @@ class animeFile:
         baseSpeed = self.baseSpeed
         totalDev = 0
 
-        for x in range(1, epCurrent + 1): #adds up the differences between the episode's speed and the base speed for all episodes
+        for x in range(1, epCurrent + 1): #adds up the differences between the episode's speed and the base speed for
+                                          #all episodes
 
-            speed = Data['Episodes'][x-1]['Episode ' + (str)(x)]['Speed']
+            speed = Data['Episodes'][x - 1]['Episode ' + (str)(x)]['Speed']
             totalDev += float(speed) - baseSpeed
 
         try:
-            avgDev = totalDev/epCurrent
+            avgDev = totalDev / epCurrent
         except:
             avgDev = None
 
@@ -326,6 +331,15 @@ class animeFile:
         print("speed dev: " + str(avgDev))
 
         return avgDev
+
+    def getStatus(self):
+        return self.status
+    
+    def getName(self):
+        return self.animeName
+
+    def getId(self):
+        return self.animeId
 
     def calcNNScore(self):
         '''gets the NN score for the anime'''
@@ -450,22 +464,31 @@ class animeFile:
         '''writes data to file'''
 
         #updates Data values
-        Path = self.Path
-        Data = self.Data
-        Data['Info']['Episode Count']['Current'] = self.epCurrent
-        Data['Info']['Episode Count']['Total'] = self.epTotal
-        Data['Info']['Status'] = self.status
-        Data['Info']['Base Speed'] = self.baseSpeed
-        Data['Info']['Score']['Average Score'] = valManip.round(self.avgScore, 2)
-        Data['Info']['Score']['Scaled Score'] = valManip.round(self.scaledScore, 2)
-        Data['Info']['Score']['NN Score'] = valManip.round(self.nnScore, 2)
-        Data['Info']['Impact Rating'] = self.impactScore
-        Data['Info']['Episode Length'] = self.duration
-        Data['Info']['Score']['Real Score'] = self.realScore
+        newData = {'Anime Name' : self.animeName,
+                   'Anime ID' : self.aniData['id'],
+                        'Status' : self.status,
+                        'Episode Count' : {
+                                'Current' : self.epCurrent,
+                                'Total' : self.aniData['episodes']
+                            },
+                        'Base Speed' : self.baseSpeed,
+                        'Score' : {
+                                'Average Score' : valManip.round(self.avgScore, 2),
+                                'Scaled Score' : valManip.round(self.scaledScore, 2),
+                                'NN Score' : valManip.round(self.nnScore, 2),
+                                'Real Score' : self.realScore,
+                            },
+                        'Impact Rating' : self.impactScore,
+                        'Episode Length' : self.aniData['duration']
+                        }
+
+        self.Data['Info'] = newData
+        
+
 
         #writes to file
-        with open(Path, "w+") as json_file:
-            json.dump(Data, json_file, indent = 4, ensure_ascii = True)
+        with open(self.Path, "w+") as json_file:
+            json.dump(self.Data, json_file, indent = 4, ensure_ascii = True)
 
         pass
     
@@ -475,11 +498,10 @@ class animeFile:
         updateAnime.changeStatus(self.animeName, self.status) #updates status on website
         updateAnime.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
 
-        if(self.nnScore == 0 or self.status != "COMPLETED"): #updates score on website (scaled score is used if not completed. NN score if it is)
-            updateAnime.changeScore(self.animeName, self.scaledScore)
+        if(self.nnScore == 0 or self.status != "COMPLETED"): #updates score on website (scaled score is used if not completed.  NN score if
+                                                             #it is)
+            updateAnime.changeScore(animeName=self.animeName, score=self.scaledScore)
         else:
-            updateAnime.changeScore(self.animeName, self.nnScore)
-
-        pass
+            updateAnime.changeScore(animeName=self.animeName, score=self.nnScore)
     
 

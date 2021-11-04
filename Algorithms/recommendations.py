@@ -142,6 +142,7 @@ class recommendations():
         recListStat = {}
 
         animeCount = 0
+        totalScore = 0
 
         for detList in animeListDet: #iterates through each anime list
 
@@ -151,13 +152,15 @@ class recommendations():
             detList = detList['entries']
             animeCount += len(detList)
 
+
             for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
-                scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
+                scoreValue = detAnime['media']['mediaListEntry']['score'] - 6.3
 
-                if((scoreValue + 7) == 0):
-                    continue
+                #if((scoreValue) == 0):
+                #    continue
 
+                totalScore += scoreValue
 
                 for genres in detAnime['media']['genres']: #gets genreValues
 
@@ -205,9 +208,11 @@ class recommendations():
                     else:
                         recListStat[title] = np.append(recListStat[title], recValue)
 
-            stats = [genreListStat, tagListStat, recListStat, animeCount, detListPTW]
+        print("average score: " + str(totalScore/animeCount))
 
-            return stats
+        stats = [genreListStat, tagListStat, recListStat, animeCount, detListPTW]
+
+        return stats
 
     def calcGenreTagValues(genreListStat, tagListStat):
         pass
@@ -221,6 +226,8 @@ class recommendations():
         recListStat = stats[2]
         animeCount = stats[3]
         detListPTW = stats[4]
+        stdGenre = {}
+        stdTag = {}
 
         for genres in genreListStat: #applies variability equation to the genre scores
 
@@ -236,7 +243,9 @@ class recommendations():
             size = len(currGenre)
             multi = (1 + ((float(size)/6)/animeCount))
             mean = np.mean(currGenre)
-            #print(genres + ": " + str(mean))
+            #stdGenre[genres] = np.std(currGenre)
+            print(genres + ": " + str(np.std(currGenre)) + ", " + str(mean) + ", " + str(size))
+
             mean = mean * multi / 5
 
             if(mean >= 0):
@@ -270,6 +279,7 @@ class recommendations():
             
             multi = (1 + ((size/6)/animeCount))
             mean = np.mean(currTag) * multi / 5
+            stdTag[tags] = np.std(currTag)
 
             if(mean >= 0):
                 tagListStat[tags] = math.sqrt(mean)
@@ -278,6 +288,7 @@ class recommendations():
 
             #print(tags + ": " + str(mean))
             #print("      multi: " + str(tagListStat[tags]))
+            print(tags + ": " + str(np.std(currTag)))
         
 
         #looks through the Planning list and uses the genres as multipliers to find the closest anime
@@ -323,13 +334,13 @@ class recommendations():
 
                     animeMultiplier = animeMultiplierGenre * animeMultiplierTag
 
-                    animeMultiplier *= animeMultiplierRec ** 0.3
+                    animeMultiplier *= animeMultiplierRec ** 0.8
 
-                    if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
-                        try:
-                            animeMultiplier = math.pow(animeMultiplier, 1/3)
-                        except:
-                            pass
+                    #if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
+                    #    try:
+                    #        animeMultiplier = math.pow(animeMultiplier, 1/3)
+                    #    except:
+                    #        pass
 
                 
 

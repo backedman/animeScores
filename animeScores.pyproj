@@ -36,7 +36,13 @@
     <Compile Include="Algorithms\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AniListAPI\AniListCalls.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="AniListAPI\updateAnime.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="AniListAPI\updateFiles.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="anime\animeFile.py">

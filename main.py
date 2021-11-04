@@ -7,6 +7,8 @@ import threading
 from AniListAPI.AniListAccess import *
 from AniListAPI.updateAnime import *
 from AniListAPI.animeList import *
+from AniListAPI.AniListCalls import *
+from AniListAPI.updateFiles import *
 from Algorithms.Search import *
 from Algorithms.recommendations import *
 from anime.animeFile import *
@@ -36,7 +38,7 @@ def main():
 
   #gets the most up to date user's anime list from website
     aniList = animeList.updateAniListAnimeList()
-    animeList.updateFiles()
+    updateFiles.moveAllFiles()
     titleList = animeList.getTitleList(status)
         
 
@@ -97,7 +99,7 @@ def main():
         elif (ans == "S" or ans == "s"):
             print("Name of anime to search")
             animeName = input()
-            titleList = animeList.getAnimeSearchList(animeName, 5)
+            titleList = AniListCalls.getAnimeSearchList(animeName, 5)
 
         elif (ans == "R" or ans == "r"):
             print("1. Normal (recommended)")
@@ -118,9 +120,8 @@ def main():
             # asks user for input
             print("1. Open another list")
             print("2. refresh anime lists")
-            print("2. Mass update scores")
-            print("3. Neural Network")
-            print("4. predict score of anime (using the recommendations algorithm)")
+            print("3. Mass update scores")
+            print("4. Neural Network")
 
             ans = int(input())
 
@@ -155,13 +156,16 @@ def main():
                 maxPage = int((len(titleList) / 9 + 1.5))
 
             elif(ans == 2): #refreshes the lists
+                
+                #gets new anime list
                 aniList = animeList.updateAniListAnimeList()
-                animeList.updateFiles()
-                titleList = animeList.getTitleList(status)
+                updateFiles.moveAllFiles(updateInfo = True) #moves the files as they corresond to the anime list
+                titleList = animeList.getTitleList(status) #gets the titles based on the list
+
 
             elif(ans == 3): #mass updates the scores
 
-                updateAnime.massUpdateNNScore()
+                updateFiles.massUpdateNNScore()
                 updateAnime.massUpdateScore()
 
             elif(ans ==4): #prompts neural network options
@@ -252,7 +256,7 @@ def main():
               
 
 
-            elif(ans == 4):
+            elif(ans == 5):
                  
                  nnRec = recNeuralNet()
                  
@@ -262,7 +266,7 @@ def main():
                     addSpacing()
                     print("Name of anime to search")
                     animeSearch = input()
-                    listResults = animeList.getAnimeSearchList(animeSearch, 10)['media']
+                    listResults = AniListCalls.getAnimeSearchList(animeSearch, 10)['media']
 
                     sPage = 1
                     sMaxPage = int(len(listResults) / 9 + 1.5)
@@ -280,7 +284,7 @@ def main():
                     listIndex = int(ans) - 1 + (sPage - 1) * 9
                     animeName = listResults[listIndex]['title']['userPreferred']
 
-                    anime = animeList.getAnimeDetailed(animeName) #gets detailed information from the anime the user chose
+                    anime = AniListCalls.getAnimeDetailed(animeName) #gets detailed information from the anime the user chose
 
                     print(anime)
 
@@ -327,4 +331,9 @@ def addSpacing():
 if __name__ == '__main__':
     mainThread = threading.Thread(target = main())
 
-    mainThread.start() 
+    try:
+        main()
+
+    except Exception as e:
+        traceback.print_exc()
+        input("Press any key to exit")
