@@ -92,17 +92,13 @@ class animeFile:
         self.duration = aniData['duration']
         self.speedChangeable = config.getSpeedChangeable()
 
-        #writes to file and updates stats
-        self.writeToFile()
-        self.updateStats()
-
         #Shows prompt for user
         if(prompt == True):
             self.userPrompt()
 
-            #writes to file and updates stats
-            self.writeToFile()
-            self.updateStats()
+        #writes to file and updates stats
+        self.writeToFile()
+        self.updateStats()
 
         
 
@@ -132,8 +128,6 @@ class animeFile:
                 self.Settings()
 
             elif(ans == "x" or ans == "X"):
-                self.writeToFile()
-                self.updateStats()
                 break
         pass
 
@@ -187,7 +181,6 @@ class animeFile:
             self.epTotal = epTotal
 
             #updates episode count
-            updateAnime.changeProgress(animeName, epCurrent)
             self.updateScores()
 
             #updates data list in instance
@@ -495,13 +488,13 @@ class animeFile:
     def updateStats(self):
         '''update stats of anime on website'''
 
-        updateAnime.changeStatus(self.animeName, self.status) #updates status on website
-        updateAnime.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
+        #updateAnime.changeStatus(self.animeName, self.status) #updates status on website
+        #updateAnime.changeProgress(self.animeName, self.epCurrent) #updates episode count on website
 
         if(self.nnScore == 0 or self.status != "COMPLETED"): #updates score on website (scaled score is used if not completed.  NN score if
                                                              #it is)
-            updateAnime.changeScore(animeName=self.animeName, score=self.scaledScore)
+            updateAnime.updateInfo(animeName=self.animeName, status=self.status, epNumber=self.epCurrent, score=self.scaledScore)
         else:
-            updateAnime.changeScore(animeName=self.animeName, score=self.nnScore)
+            updateAnime.updateInfo(animeName=self.animeName, status=self.status, epNumber=self.epCurrent, score=self.nnScore)
     
 

@@ -37,15 +37,17 @@ class updateAnime():
                     print("old: " + str(score) + "      " + "new: " + str(fileScore))
                     updateAnime.changeScore(score = fileScore, animeId = anime_id)
 
-    def updateAll(animeName, status, epNumber, score):
+    def updateInfo(animeName = None, animeId = None, status = None, epNumber = None, score = None):
         '''updates the status, score, and episode number of an anime'''
 
         score = (float)(valManip.round(score, 2)) #converts score into something out of 100 instead of 10 (that is how it is
                                                   #used in anilist)
 
+
+
         query = '''
-            mutation ($id: Int, $status: MediaListStatus $score: Float, $progress: Int) {
-                SaveMediaListEntry (id: $id, status: $status, score: $score, progress: $progress) {
+            mutation ($id: Int, $status: MediaListStatus, $mediaId: Int $score: Float, $progress: Int) {
+                SaveMediaListEntry (id: $id, status: $status, mediaId: $mediaId, score: $score, progress: $progress) {
                     id
                     status
                     score
@@ -54,12 +56,25 @@ class updateAnime():
             }
         '''
 
-        variables = {
-            'id' : animeList.getEntryId(animeName),
-            'status' : status,
-            'score': score,
-            'progress' : epNumber,
-            }
+        id = animeList.getEntryId(animeName)
+
+        if(id != None):
+            variables = {
+                'id' : animeList.getEntryId(animeName),
+                'status' : status,
+                'score': score,
+                'progress' : epNumber,
+                }
+
+        else:
+            variables = {
+                'mediaId' : animeList.getMediaId(animeName),
+                'status' : status,
+                'score': score,
+                'progress' : epNumber,
+                }
+
+
 
         data = AniListAccess.getData(query, variables)
         status = data['data']['SaveMediaListEntry']['status']
@@ -73,7 +88,7 @@ class updateAnime():
 
         pass
 
-    def changeStatus(animeName, status):
+    def changeStatus(animeName = None, animeId = None, status = None):
         '''changes status of anime on website'''
         
 
@@ -111,7 +126,7 @@ class updateAnime():
 
         pass
 
-    def changeProgress(animeName, epNumber):
+    def changeProgress(animeName = None, animeId = None, epNumber = None):
         query = '''
             mutation ($id: Int, $mediaId: Int, $progress: Int) {
                 SaveMediaListEntry (id: $id, mediaId: $mediaId, progress: $progress) {
