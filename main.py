@@ -319,7 +319,6 @@ def main():
 
             aniShow = animeFile(animeName, status)
             
-        pass
 
 def addSpacing():
     for x in range(50):
@@ -329,10 +328,9 @@ def addSpacing():
 
 
 if __name__ == '__main__':
-    mainThread = threading.Thread(target = main())
 
     try:
-        main()
+        mainThread = threading.Thread(target = main())
 
     except Exception as e:
         traceback.print_exc()
