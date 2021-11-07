@@ -122,6 +122,7 @@ def main():
             print("2. refresh anime lists")
             print("3. Mass update scores")
             print("4. Neural Network")
+            print("5. Mass change status")
 
             ans = int(input())
 
@@ -168,7 +169,7 @@ def main():
                 updateFiles.massUpdateNNScore()
                 updateAnime.massUpdateScore()
 
-            elif(ans ==4): #prompts neural network options
+            elif(ans == 4): #prompts neural network options
 
                 print("1. run with Impact Rating")
                 print("2. run without Impact Rating")
@@ -254,9 +255,46 @@ def main():
                     if(runWithout):
                         neuralNet.trainNoImpact(iterations, cont)
               
-
-
             elif(ans == 5):
+
+                # asks user for input
+                print("1. Convert to WATCHING")
+                print("2. Convert to COMPLETED")
+                print("3. Convert to PLANNING")
+                print("4. Convert to PAUSED")
+                print("5. Convert to DROPPED")
+                print("6. Convert to ALL")
+                ans = int(input())
+
+                # selects which option the user chooses to convert the anime to
+                if(ans == 1):
+                    convTo = "CURRENT"
+                elif(ans == 2):
+                    convTo = "COMPLETED"
+                elif(ans == 3):
+                    convTo = "PLANNING"
+                elif(ans == 4):
+                    convTo = "PAUSED"
+                elif(ans == 5):
+                    convTo = "DROPPED"
+                elif(ans == 6):
+                    convTo = "ALL"
+
+                print("SELECT ANIME (choose each number and seperate the numbers by commas (ex. 1,2,3)")
+
+                print("Page " + str(page) + "/" + str(maxPage))
+                # shows anime in page
+                for x in range(1, 10):
+                    if (x <= len(titleList) - (page - 1) * 9):
+                        listIndex = x - 1 + (page - 1) * 9
+                        listAnime = titleList[listIndex]
+                        print(str(x) + "." + str(listAnime))
+
+                print("SELECT ANIME (choose each number and seperate the numbers by commas (ex. 1,2,3)")
+
+                #
+
+            elif(ans == 6): #score predictor based on recommendations neural network
                  
                  nnRec = recNeuralNet()
                  
