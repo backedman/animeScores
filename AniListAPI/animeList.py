@@ -268,7 +268,10 @@ class animeList():
 		
 		#gets correct list
 		animeListStat = []
-		animeListStat = animeList.getAnimeList(status)['entries']
+		try:
+			animeListStat = animeList.getAnimeList(status)['entries']
+		except TypeError:
+			return []
 
 		#sets variables for loop
 		titleList = []
