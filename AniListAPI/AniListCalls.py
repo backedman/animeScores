@@ -104,7 +104,6 @@ class AniListCalls():
         animeData = []
 
         for anime in queryData:
-            print(anime)
             animeTitle = anime['title']['userPreferred']
             animeData.append(animeTitle)
 

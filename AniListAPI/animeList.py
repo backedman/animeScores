@@ -232,7 +232,6 @@ class animeList():
 			for y in range(0, aniListLen): #iterates through entries in the list, adding them to the all list
 				animeEntry = listAll[x]['entries'][y]
 				animeListAll['entries'].append(animeEntry)
-				print(animeEntry)
 
 		pass
 

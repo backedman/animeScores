@@ -324,8 +324,6 @@ def main():
 
                     anime = AniListCalls.getAnimeDetailed(animeName) #gets detailed information from the anime the user chose
 
-                    print(anime)
-
                     genres = anime['genres']
                     tags = anime['tags']
                     tagRank = [0] * len(tags)

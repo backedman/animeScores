@@ -40,7 +40,6 @@ class updateFiles():
                     #update the NN score in the file based on the predicted value
                     else:
                         contents['Info']['Score']['NN Score'] = valManip.round(predictions[y][0], 2)
-                        print(animeName + " " + str(stats[y]))
             
                 with open(Path, "w+") as json_file:
 
@@ -83,7 +82,6 @@ class updateFiles():
 
                     try:
                         aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
-                        print(animeListAll['entries'][aniLoc])
 
                     except TypeError: #if the anime from file cannot be found in the data brought in from the api, it throws an error message to check for later
                         print("ERROR COULD NOT FIND " + animeName)

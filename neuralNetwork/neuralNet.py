@@ -67,8 +67,6 @@ class neuralNet(object):
         checkpoint_path = "nnWeights/Main/cp.ckpt"
         checkpoint_dir = os.path.dirname(checkpoint_path) 
 
-        print("here")
-
         batch_size = 32
 
         #data saved every 100 iterations

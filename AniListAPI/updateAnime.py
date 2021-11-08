@@ -151,9 +151,7 @@ class updateAnime():
                 'progress' : epNumber
             }
         
-        print(variables)
         data = AniListAccess.getData(query, variables)
-        print(data)
 
         epNum = data['data']['SaveMediaListEntry']['progress']
 
