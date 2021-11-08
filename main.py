@@ -4,6 +4,7 @@ import json
 import webbrowser
 import os
 import threading
+import traceback
 from AniListAPI.AniListAccess import *
 from AniListAPI.updateAnime import *
 from AniListAPI.animeList import *
@@ -81,7 +82,7 @@ def main():
         if (ans == "N" or ans == "n"):
             print("Name of anime?")
             anime = input()
-            animeName = animeList.getAnimeSearch(anime)['title']['userPreferred']
+            animeName = AniListCalls.getAnimeSearch(anime)['title']['userPreferred']
             aniShow = animeFile(animeName, status)
 
         # goes back a page if user chooses "Q"
