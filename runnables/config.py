@@ -85,6 +85,7 @@ class config(object):
                 if(AccessCode == ""): #if the line is empty, then part 2 of config creation starts. If its not, then the configs values are pulled
                     
                     AccessCode = AniListAccess.findAniListAccessToken(AuthToken) #finds accessToken
+                    print(AccessCode)
                     userID = AniListAccess.findUserID()
 
                     config.rewriteConfig()

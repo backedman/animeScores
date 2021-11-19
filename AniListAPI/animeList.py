@@ -71,8 +71,7 @@ class animeList():
 
 
 		#requests data from API into a list
-		animeListData = AniListAccess.getData(query, variables)['data']
-		
+		animeListData = AniListAccess.getData(query, variables)['data']		
 
 
 		#initializes variables

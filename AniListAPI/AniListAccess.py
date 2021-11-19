@@ -54,6 +54,7 @@ class AniListAccess():
         #gets accessToken
         accessToken = requests.post(url = ACCESS_URL, json = form_params,  headers = header)
         accessToken = json.loads(accessToken.content)
+        print(accessToken)
         accessToken = accessToken['access_token']
         ACCESS_TOKEN = accessToken
         AniListAccess.setAccHead()
@@ -143,6 +144,13 @@ class AniListAccess():
 
         if(returnData['data'] == None):
             print(returnData)
+            try:
+                if(returnData['errors'][0]['message'] == 'Invalid token'):
+                    AniListAccess.findAniListAccessToken(AniListAccess.findAniListAuthToken())
+
+            except KeyError:
+                print("No data returned by the call")
+
 
         returnData = returnData['data']
         
