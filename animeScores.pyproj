@@ -12,7 +12,8 @@
     <OutputPath>.</OutputPath>
     <Name>animeScores</Name>
     <RootNamespace>showScores</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.8</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -111,8 +112,13 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|3" />
+    <InterpreterReference Include="Global|PythonCore|3.6" />
+    <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="Global|PythonCore|3.7-32" />
     <InterpreterReference Include="Global|PythonCore|3.8" />
     <InterpreterReference Include="Global|PythonCore|3.9" />
+    <InterpreterReference Include="Global|VisualStudio|animeScores Env" />
+    <InterpreterReference Include="Global|VisualStudio|Python39" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -3,7 +3,6 @@ from AniListAPI.AniListAccess import *
 import neuralNetwork.compileData
 from neuralNetwork.neuralNet import *
 from neuralNetwork.recNeuralNet import *
-from tqdm import tqdm, trange
 import neuralNetwork.compileData
 
 nnRec = recNeuralNet()

@@ -24,6 +24,7 @@ class recNeuralNet:
             #creates the neural network with the layers
             model = keras.Sequential(
                         [
+                        layers.Dense(80, name="layer1", activation="relu"),
                         layers.Dense(80, name="layer1", activation= "relu"),
                         layers.Dense(160, name="layer2", activation= "relu"),
                         layers.Dense(60, name="layer3", activation= "relu"),
