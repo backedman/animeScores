@@ -1,5 +1,6 @@
 import json
 import numpy
+import csv  
 from AniListAPI.animeList import *
 from Algorithms.valManip import *
 
@@ -189,3 +190,23 @@ class compileData(object):
 
         except ZeroDivisionError:
             return 0
+
+    def saveIntoCSV():
+        '''saves the data into a csv'''
+
+        data = compileData.getSetsCompleted()
+        stats = data[0]
+        target = data[1]
+
+        header = ['epCount', 'avg score', 'impact score', 'speed deviation', 'score deviation', 'real score']
+
+        with open('data.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+
+            # write the header
+            writer.writerow(header)
+
+            for info,score in zip(stats,target):
+                # write the data
+                appended = numpy.append(info,score)
+                writer.writerow(appended)

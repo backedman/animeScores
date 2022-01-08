@@ -124,6 +124,7 @@ def main():
             print("3. Mass update scores")
             print("4. Neural Network")
             print("5. Mass change status")
+            print("6. Save data as a csv")
 
             ans = int(input())
 
@@ -293,9 +294,11 @@ def main():
 
                 print("SELECT ANIME (choose each number and seperate the numbers by commas (ex. 1,2,3)")
 
-                #
+            elif(ans == 6):
 
-            elif(ans == 6): #score predictor based on recommendations neural network
+                compileData.saveIntoCSV()
+
+            elif(ans == 7): #score predictor based on recommendations neural network
                  
                  nnRec = recNeuralNet()
                  
