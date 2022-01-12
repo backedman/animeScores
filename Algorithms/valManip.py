@@ -59,8 +59,10 @@ class valManip(object):
         else:
             Path = os.getcwd() + "/Data/" + stat + "/"
 
-        os.makedirs(Path, exist_ok=True)
-
+        if(os.path.exists(Path) == False):
+            print("Path does not exist")
+            print(Path)
+            os.makedirs(Path, exist_ok=True)
         return Path
 
     def sqrtKeepNeg(value):

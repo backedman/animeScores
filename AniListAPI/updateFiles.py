@@ -51,9 +51,9 @@ class updateFiles():
     def moveAllFiles(updateInfo=False):
         '''Moves files to the correct folder. If updateInfo is true, then the file is opened and all the information within it that is retrieved from the API originally is updated'''
 
-        statusTypes = os.listdir(valManip.getPath())
+        statusTypes = ['PLANNING', "COMPLETED", "DROPPED", "PAUSED", "REPEATING", "CURRENT"]
         animeListAll = animeList.getAnimeList(status="ALL")
-        
+
         if(updateInfo == True):
             animeListDet = animeList.updateAnimeListDet("", sort = "MEDIA_ID")
 

@@ -1,4 +1,7 @@
 from AniListAPI.AniListAccess import *
+from Algorithms.valManip import *
+from datetime import date
+
 
 class AniListCalls():
 

@@ -1,4 +1,5 @@
 import AniListAPI.animeList
+import AniListAPI.AniListCalls
 from AniListAPI.AniListAccess import *
 import neuralNetwork.compileData
 from neuralNetwork.neuralNet import *
@@ -129,7 +130,7 @@ class recommendations():
             if(animeListDet[status]['status'] == "PLANNING"):
                 detListPTW = animeListDet[status]['entries']
 
-        detListPTW = animeList.getAllAnime(True)
+        detListPTW = AniListCalls.getAllAnime(True)
 
         #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
         genreListStat = {}
@@ -154,10 +155,10 @@ class recommendations():
 
             for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
-                scoreValue = detAnime['media']['mediaListEntry']['score'] - 6.3
+                scoreValue = detAnime['media']['mediaListEntry']['score'] - 6.871
 
-                #if((scoreValue) == 0):
-                #    continue
+                if((scoreValue) == 0):
+                    continue
 
                 totalScore += scoreValue
 
@@ -241,7 +242,7 @@ class recommendations():
 
             size = len(currGenre)
             multi = (1 + ((float(size)/6)/animeCount))
-            mean = np.mean(currGenre)
+            mean = np.median(currGenre)
             #stdGenre[genres] = np.std(currGenre)
             print(genres + ": " + str(np.std(currGenre)) + ", " + str(mean) + ", " + str(size))
 
@@ -294,64 +295,61 @@ class recommendations():
         listRec = {}
 
 
-        with tqdm(total = len(detListPTW)) as pbar:
-            for anime in tqdm(detListPTW):
-                #print(anime)
-                animeMultiplierGenre = 1
-                animeMultiplierTag = 1
-                animeMultiplierRec = 1
-                animeScore = anime['averageScore']
-                animeName = anime['title']['userPreferred']
+        for anime in detListPTW:
+            #print(anime)
+            animeMultiplierGenre = 1
+            animeMultiplierTag = 1
+            animeMultiplierRec = 1
+            animeScore = anime['averageScore']
+            animeName = anime['title']['userPreferred']
 
-                if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
+            if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
-                    for genres in anime['genres']:
+                for genres in anime['genres']:
 
-                        if genres in genreListStat:
-                            animeMultiplierGenre *= genreListStat[genres]
+                    if genres in genreListStat:
+                        animeMultiplierGenre *= genreListStat[genres]
 
-                    for tags in anime['tags']:
-                        tagTitle = tags['name']
+                for tags in anime['tags']:
+                    tagTitle = tags['name']
                     
-                        if tagTitle in tagListStat:
-                            animeMultiplierTag += tagListStat[tagTitle]/10
+                    if tagTitle in tagListStat:
+                        animeMultiplierTag += tagListStat[tagTitle]/10
                 
-                        if animeMultiplierTag < 1:
-                            animeMultiplierTag = abs(1/animeMultiplierTag)
-                    try:
-                        if animeName in recListStat:
-                            animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
-                            if(animeMultiplierRec >= 0):
-                                animeMultiplierRec += 1
-                            elif(animeMultiplierRec < 0):
-                                animeMultiplierRec -=1
-                    except:
-                        animeMultiplierRec = 1
+                    if animeMultiplierTag < 1:
+                        animeMultiplierTag = abs(1/animeMultiplierTag)
+                try:
+                    if animeName in recListStat:
+                        animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
+                        if(animeMultiplierRec >= 0):
+                            animeMultiplierRec += 1
+                        elif(animeMultiplierRec < 0):
+                            animeMultiplierRec -=1
+                except:
+                    animeMultiplierRec = 1
 
-                    if animeMultiplierRec < 1:
-                        animeMultiplierRec = abs(1/animeMultiplierTag)
+                if animeMultiplierRec < 1:
+                    animeMultiplierRec = abs(1/animeMultiplierTag)
 
-                    animeMultiplier = animeMultiplierGenre * animeMultiplierTag
+                animeMultiplier = animeMultiplierGenre * animeMultiplierTag
 
-                    animeMultiplier *= animeMultiplierRec ** 0.8
+                animeMultiplier *= animeMultiplierRec ** 0.8
 
-                    #if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
-                    #    try:
-                    #        animeMultiplier = math.pow(animeMultiplier, 1/3)
-                    #    except:
-                    #        pass
+                #if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
+                #    try:
+                #        animeMultiplier = math.pow(animeMultiplier, 1/3)
+                #    except:
+                #        pass
 
                 
 
-                    #print("      name: " + str(anime['title']['userPreferred']))
-                    #print("genres" + str(anime['genres']))
-                    #print("animeScore: " + str(animeScore))
-                    #print("animeMultiplier: " + str(animeMultiplier))
-                    animeValue = animeMultiplier * anime['averageScore']
+                #print("      name: " + str(anime['title']['userPreferred']))
+                #print("genres" + str(anime['genres']))
+                #print("animeScore: " + str(animeScore))
+                #print("animeMultiplier: " + str(animeMultiplier))
+                animeValue = animeMultiplier * anime['averageScore']
             
-                    listRec[anime['title']['userPreferred']] = animeValue
-
-                pbar.update(1)
+                listRec[anime['title']['userPreferred']] = animeValue
 
         sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
 

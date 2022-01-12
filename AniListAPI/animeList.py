@@ -122,7 +122,7 @@ class animeList():
  
 		pass
 
-	def updateAnimeListDet(user, sort="ID"):
+	def updateAnimeListDet(user, sort="MEDIA_ID"):
 		'''gets animeLists from API'''
 		
 		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
@@ -135,7 +135,7 @@ class animeList():
 		#pages, total anime, name of the anime in a page, and what list the
 		#anime is in
 		query = '''
-		query ($userName: String, $sortType: MediaListSort)  {
+		query ($userName: String, $sortType: [MediaListSort])  {
 				MediaListCollection(userName : $userName,  type: ANIME, sort: $sortType) {
 					
 					 lists {
