@@ -72,18 +72,24 @@ class updateFiles():
 
                     aniFile = json.load(json_file)
 
-                    animeName = aniFile['Info']['Anime Name']
+                    try:
+                        anime_id = aniFile['Info']['Anime ID']
 
-                    aniLoc = Search.bSearchAnimeList(animeListAll, animeName, title=True) #gets the index of the anime in the animeList
+                        aniLoc = Search.bSearchAnimeList(animeListAll, anime_id=anime_id) #gets the index of the anime in the animeList
 
-                    if(aniLoc == None):
-                        animeId = aniFile['Info']['Anime Name']
-                        aniLoc = Search.linearSearch(animeListAll, animeId, title=False)
+                    except KeyError:
+                        animeName = aniFile['Info']['Anime Name']
+
+                        aniLoc = Search.bSearchAnimeList(animeListAll, animeName=animeName) #gets the index of the anime in the animeList
+
+                        if(aniLoc != None):
+                            aniFile['Info']['Anime ID'] = aniLoc['media']['id']
 
                     try:
-                        aniListStatus = animeListAll['entries'][aniLoc]['media']['mediaListEntry']['status']
+                        aniListStatus = aniLoc['media']['mediaListEntry']['status']
 
                     except TypeError: #if the anime from file cannot be found in the data brought in from the api, it throws an error message to check for later
+
                         print("ERROR COULD NOT FIND " + animeName)
                         continue
 

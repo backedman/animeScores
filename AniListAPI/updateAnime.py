@@ -16,7 +16,7 @@ class updateAnime():
             #gets animeName, status, and score for comparison and updates
 
         animeName = data[x]['media']['title']['userPreferred']
-        anime_id = data[x]['mediaId']
+        anime_id = data[x]['id']
         status = data[x]['media']['mediaListEntry']['status']
         score = valManip.round(data[x]['media']['mediaListEntry']['score'], 1)
 
@@ -172,7 +172,7 @@ class updateAnime():
                 }
             }
         '''
-
+        
         id = animeList.getEntryId(animeName)
 
         #if the anime is on the list somewhere, updates the entry
