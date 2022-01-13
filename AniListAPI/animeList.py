@@ -77,12 +77,12 @@ class animeList():
 		#initializes variables
 		aniListLength = len(animeListData['MediaListCollection']['lists']) #amount of lists user has
 		statusTypes = []
-		animeListPTW = []
-		animeListCompleted = []
-		animeListDropped = []
-		animeListPaused = []
-		animeListRepeating = []
-		animeListCurrent = []
+		animeListPTW = dict()
+		animeListCompleted = dict()
+		animeListDropped = dict()
+		animeListPaused = dict()
+		animeListRepeating = dict()
+		animeListCurrent = dict()
 		statusTypes = []
 			
 		for x in range(0, aniListLength): #x is index of array
@@ -93,6 +93,7 @@ class animeList():
 
 			if(status == "PLANNING"):
 				animeListPTW = animeListData['MediaListCollection']['lists'][x]
+				
 			elif(status == "COMPLETED"):
 				animeListCompleted = animeListData['MediaListCollection']['lists'][x]
 			elif(status == "DROPPED"):
@@ -109,12 +110,12 @@ class animeList():
 		
 
 		#sorts all the lists in alphabetical order
-		Sort.qSort(animeListPTW)
-		Sort.qSort(animeListCompleted)
-		Sort.qSort(animeListDropped)
-		Sort.qSort(animeListPaused)
-		Sort.qSort(animeListRepeating)
-		Sort.qSort(animeListCurrent)
+		#Sort.qSort(animeListPTW)
+		#Sort.qSort(animeListCompleted)
+		#Sort.qSort(animeListDropped)
+		#Sort.qSort(animeListPaused)
+		#Sort.qSort(animeListRepeating)
+		#Sort.qSort(animeListCurrent)
 
 		animeList.setAnimeListAll() #adds all the other lists into one big list
 		Sort.qSort(animeListAll)
@@ -181,7 +182,7 @@ class animeList():
 							}
 
 						  }
-	}
+			}
 				}
 		}
 		'''
@@ -314,19 +315,19 @@ class animeList():
 
 
 
-	def getEntryId(animeName):
+	def getEntryId(animeName = None, anime_id = None):
 		'''gets list entry ID (required to change anything related to the anime on the website)'''
 		global animeListAll
 
-		aniLoc = Search.bSearchAnimeList(animeListAll, animeName.title()) #gets the index of the anime in the animeList
+		if(animeName is not None):
+			aniLoc = Search.bSearchAnimeList(animeListAll, animeName=animeName)
+		
+		elif(anime_id is not None):
+			aniLoc = Search.bSearchAnimeList(animeListAll, anime_id=anime_id)
 
-		if(aniLoc == None):
-
-			return None
-
-		else:
-
-			entryId = animeListAll['entries'][aniLoc]['id'] #gets the entry ID of the specific anime in the list
+		print(aniLoc)
+		print(anime_id)
+		entryId = aniLoc['id'] #gets the entry ID of the specific anime in the list
 
 		return entryId
 

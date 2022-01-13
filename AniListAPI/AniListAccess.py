@@ -138,13 +138,11 @@ class AniListAccess():
     def getData(query, variables):
 
         data = requests.post(QUERY_URL, json = {'query': query, 'variables' : variables}, headers = ACCESS_HEADER)
-        print(data.content)
         reqRemaining = data.headers['X-RateLimit-Remaining'] #requests remaining
 
         returnData = (json.loads(data.content))
 
         if(returnData['data'] == None):
-            print(returnData)
             try:
                 if(returnData['errors'][0]['message'] == 'Invalid token'):
                     AniListAccess.findAniListAccessToken(AniListAccess.findAniListAuthToken())
