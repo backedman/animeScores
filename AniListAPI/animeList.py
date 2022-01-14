@@ -325,11 +325,11 @@ class animeList():
 		elif(anime_id is not None):
 			aniLoc = Search.bSearchAnimeList(animeListAll, anime_id=anime_id)
 
-		print(aniLoc)
-		print(anime_id)
-		entryId = aniLoc['id'] #gets the entry ID of the specific anime in the list
-
-		return entryId
+		if(aniLoc == None): #return None if the anime is not in any of the lists
+			return None
+		else:	
+			entryId = aniLoc['id'] #gets the entry ID of the specific anime in the list
+			return entryId
 
 	def getMediaId(animeName):
 
