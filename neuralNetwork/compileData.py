@@ -27,7 +27,7 @@ class compileData(object):
                 realScore = compileData.getRealScore(aniFile)
 
                 if realScore == 0:
-                    continue;
+                    continue
                 else:
                     stats.append(compileData.getEpisodeCount(aniFile))
                     stats.append(compileData.getAvgScr(aniFile))

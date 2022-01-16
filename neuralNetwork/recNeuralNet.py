@@ -254,7 +254,7 @@ class recNeuralNet:
         diff = self.goal - prediction
         print(diff)
 
-    def isNewModel(self): #returns in a new model was created or not when object was created
+    def isNewModel(self): #returns if a new model was created or not when object was created
         global newModel
 
         return newModel

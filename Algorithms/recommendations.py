@@ -155,7 +155,7 @@ class recommendations():
 
             for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
-                scoreValue = detAnime['media']['mediaListEntry']['score'] - 6.871
+                scoreValue = detAnime['media']['mediaListEntry']['score']
 
                 if((scoreValue) == 0):
                     continue
@@ -226,136 +226,43 @@ class recommendations():
         recListStat = stats[2]
         animeCount = stats[3]
         detListPTW = stats[4]
-        stdGenre = {}
-        stdTag = {}
 
-        for genres in genreListStat: #applies variability equation to the genre scores
+        #weight the more newly watched animes in each genre more than the others
+        genre_means = {}
+        #loop through each genre
+        for genre_title in genreListStat:
+            
+            genre_vals = genreListStat[genre_title]
+            print(genre_vals)
 
-            try:
-                currGenre = sorted(genreListStat[genres])
-            except:
-                currGenre = [genreListStat[genres]]
+            size = len(genre_vals)
+            weighted_count = 0
+            total = 0
 
-            #if(len(currGenre) < 2):
-            #    genreListStat[genres] = 1
-            #    continue
+            '''create identical slices based on the amount in the genre.
+               The weighting of the anime goes from 2x to the most recent anime down to 0.5x for the oldest
+               anime in the genre. If there is less than 10 anime in the genre, the weighting only goes down to 1x'''
 
-            size = len(currGenre)
-            multi = (1 + ((float(size)/6)/animeCount))
-            mean = np.median(currGenre)
-            #stdGenre[genres] = np.std(currGenre)
-            print(genres + ": " + str(np.std(currGenre)) + ", " + str(mean) + ", " + str(size))
+            max = 2
+            min = 1 if size <= 10 else 0.5
+            slice_size = (max-min)/size
+            curr = max
+            
+            for score in reversed(genre_vals):
+                total += score * curr
+                weighted_count += curr
+                curr -= slice_size
 
-            mean = mean * multi / 5
+            weighted_average = total/weighted_count
+            genre_means[genre_title] = weighted_average
 
-            if(mean >= 0):
-                #genreListStat[genres] = (genreListStat[genres]/genreListCount[genres]) + 1
-                genreListStat[genres] = (mean + 1)
-            else:
-                #genreListStat[genres] = 1/((abs(genreListStat[genres]/genreListCount[genres] - 1)))
-                genreListStat[genres] = 1/abs(mean - 1)
+        print(genre_means)
 
             
-            #print("      value: " + str(genreListStat[genres]))
-            #print("      multi: " + str(multi))
-        
-        #print(tagListStat)
-
-        for tags in tagListStat:
-
-            try:
-                currTag = sorted(tagListStat[tags])
-            except:
-                currTag = [tagListStat[tags]]
-                #print(currTag)
-
-            #if(len(currTag) < 2):
-            #    tagListStat[tags] = 0
-            #    continue
-
-            midPoint = int(len(currTag)/2)
-            median = currTag[midPoint]
-            size = len(currTag)
-            
-            multi = (1 + ((size/6)/animeCount))
-            mean = np.mean(currTag) * multi / 5
-            stdTag[tags] = np.std(currTag)
-
-            if(mean >= 0):
-                tagListStat[tags] = math.sqrt(mean)
-            else:
-                tagListStat[tags] = math.sqrt(abs(mean)) * -1
-
-            #print(tags + ": " + str(mean))
-            #print("      multi: " + str(tagListStat[tags]))
-            print(tags + ": " + str(np.std(currTag)))
-        
-
-        #looks through the Planning list and uses the genres as multipliers to find the closest anime
-        listRec = {}
 
 
-        for anime in detListPTW:
-            #print(anime)
-            animeMultiplierGenre = 1
-            animeMultiplierTag = 1
-            animeMultiplierRec = 1
-            animeScore = anime['averageScore']
-            animeName = anime['title']['userPreferred']
 
-            if(animeScore is not None): #if the anime has released (it has been scored by the user), add the anime's value (average score * (value of genres added together))
 
-                for genres in anime['genres']:
 
-                    if genres in genreListStat:
-                        animeMultiplierGenre *= genreListStat[genres]
-
-                for tags in anime['tags']:
-                    tagTitle = tags['name']
-                    
-                    if tagTitle in tagListStat:
-                        animeMultiplierTag += tagListStat[tagTitle]/10
-                
-                    if animeMultiplierTag < 1:
-                        animeMultiplierTag = abs(1/animeMultiplierTag)
-                try:
-                    if animeName in recListStat:
-                        animeMultiplierRec = valManip.sqrtKeepNeg(sum(recListStat[animeName]))
-                        if(animeMultiplierRec >= 0):
-                            animeMultiplierRec += 1
-                        elif(animeMultiplierRec < 0):
-                            animeMultiplierRec -=1
-                except:
-                    animeMultiplierRec = 1
-
-                if animeMultiplierRec < 1:
-                    animeMultiplierRec = abs(1/animeMultiplierTag)
-
-                animeMultiplier = animeMultiplierGenre * animeMultiplierTag
-
-                animeMultiplier *= animeMultiplierRec ** 0.8
-
-                #if(animeMultiplier >= 1.3 or animeMultiplier <= 1):
-                #    try:
-                #        animeMultiplier = math.pow(animeMultiplier, 1/3)
-                #    except:
-                #        pass
-
-                
-
-                #print("      name: " + str(anime['title']['userPreferred']))
-                #print("genres" + str(anime['genres']))
-                #print("animeScore: " + str(animeScore))
-                #print("animeMultiplier: " + str(animeMultiplier))
-                animeValue = animeMultiplier * anime['averageScore']
-            
-                listRec[anime['title']['userPreferred']] = animeValue
-
-        sortedRec = sorted(listRec.items(), key = operator.itemgetter(1), reverse = True)
-
-        for x in range(0,len(sortedRec)):
-            print(sortedRec[x][0] + ": " + str(sortedRec[x][1]))
-            sortedRec[x] = sortedRec[x][0]
-
-        return sortedRec
+        pass
 
