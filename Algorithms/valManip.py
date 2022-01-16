@@ -72,3 +72,9 @@ class valManip(object):
             return math.sqrt(value)
         else:
             return -math.sqrt(abs(value))
+
+    def powKeepNeg(value, power=2):
+        if(value >= 0):
+            return math.pow(value,power)
+        else:
+            return -math.pow(abs(value),power)
