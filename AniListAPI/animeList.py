@@ -123,7 +123,7 @@ class animeList():
  
 		pass
 
-	def updateAnimeListDet(user, sort="MEDIA_ID"):
+	def updateAnimeListDet(user="", sort="MEDIA_ID"):
 		'''gets animeLists from API'''
 		
 		global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes
@@ -131,6 +131,9 @@ class animeList():
 			userName = AniListAccess.getUserName()
 		else:
 			userName = user
+
+		if(sort is None):
+			sort = "MEDIA_ID"
 
 		#sets query to send to server.  This one asks for total number of
 		#pages, total anime, name of the anime in a page, and what list the
@@ -305,13 +308,12 @@ class animeList():
 
 		return animeData
 
-	def getAnimeListDet():
+	def getAnimeListDet(sort=None):
 		global animeListDet
 
-		if(animeListDet == []):
-			return animeList.updateAnimeListDet("")
-		else:
-			return animeListDet
+		if(animeListDet == [] or sort is not None):
+			animeListDet = animeList.updateAnimeListDet(sort=sort)
+		return animeListDet
 
 
 

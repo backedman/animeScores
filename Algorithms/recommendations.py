@@ -128,7 +128,7 @@ class recommendations():
     def getGenreTagValues(remove_outliers = False):
         global average
 
-        animeListDet = animeList.getAnimeListDet() #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
+        animeListDet = animeList.getAnimeListDet(sort="FINISHED_ON") #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
         detListPTW = {}
 
         true_start = time.time()
@@ -159,6 +159,8 @@ class recommendations():
             if(detList['status'] == "PLANNING" or detList['status'] == "CURRENT"):
                 continue
 
+            status = detList['status']
+
             detList = detList['entries']
             animeCount += len(detList)
 
@@ -167,6 +169,10 @@ class recommendations():
             for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
                 scoreValue = detAnime['media']['mediaListEntry']['score']
+
+                name = detAnime['media']['title']['userPreferred']
+                
+                print(status + " " + name)
 
                 if((scoreValue) == 0):
                     animeCount -= 1
@@ -261,11 +267,25 @@ class recommendations():
         '''removes the outliers in the data (ok well not exactly, but it removes the values outside of the 95% confidence interval (1.96 standard deviations) 
            to prevent rogue good or bad anime to skew the data too much'''
 
+        total_deleted = 0
+
         for val in dict:
 
             vals = dict[val]
-            #print("-------------------%s------------------------" % val)
+            
+            try:
+                old_len = len(vals)
+            except:
+                old_len = 1
+                vals = [vals]
+
+            if(old_len < 5):
+                continue
+            
+            print("-------------------%s------------------------" % val)
             std = np.std(vals)
+
+
 
 
 
@@ -274,17 +294,14 @@ class recommendations():
             else:
                 mean = np.mean(vals)
 
-            #print("old mean: " + str(mean))
-            #print("std: " + str(std))
+            print("old mean: " + str(mean))
+            print("std: " + str(std))
+            print("length: " + str(old_len))
 
             if(std == 0):
                 continue
 
-            try:
-                old_len = len(vals)
-            except:
-                old_len = 1
-                vals = [vals]
+
 
             arr = np.array(vals)
 
@@ -323,9 +340,12 @@ class recommendations():
             else:
                 mean = np.mean(vals)
             deleted = old_len - len(vals)
+            total_deleted += deleted
             
-            #print("new mean: " + str(mean))
-            #print("deleted: " + str(deleted))
+            print("new mean: " + str(mean))
+            print("deleted: " + str(deleted))
+
+        print("total deleted: " + str(total_deleted))
 
         if(weights is not None):
             return (dict, weights)
@@ -366,11 +386,14 @@ class recommendations():
             total = 0
 
             '''create identical slices based on the amount in the genre.
-               The weighting of the anime goes from 2x to the most recent anime down to 0.5x for the oldest
-               anime in the genre. If there is less than 10 anime in the genre, the weighting only goes down to 1x.
-               If there is less than 5 anime in the genre, the weighting goes up to 1.5x'''
-            max = 2 if size > 5 else 1.5
-            min = 1 if size <= 10 else 0.5
+               The weighting of the anime goes from 3x to the most recent anime down to 1x for the oldest
+               anime in the genre. The weighting only applies to up to the most recent 30 anime completed.
+               Everything older than the 30 anime will have 1x weighting.
+               If there is less than 20 anime in the genre, the weighting starts from 2x.
+               If there is less than 10 anime in the genre, the weighting starts from 1.5x'''
+            max = 3 if size > 20 else 2 if size > 10 else 1.5
+            min = 1
+            size = 30 if size > 30 else size
             slice_size = (max-min)/size
             curr = max
             
@@ -379,10 +402,10 @@ class recommendations():
             for score in reversed(genre_vals):
                 total += valManip.powKeepNeg(score - average,2) * curr
                 weighted_count += curr
-                curr -= slice_size
+                
+                if(curr > 1):
+                    curr -= slice_size
 
-            print(total)
-            print(weighted_count)
             weighted_average = valManip.powKeepNeg(total/weighted_count,0.5)
             genre_means[genre_title] = weighted_average
 
