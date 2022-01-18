@@ -239,8 +239,8 @@ class recommendations():
 
         start = time.time()
         if(remove_outliers):
-            genreListStat = recommendations.removeOutliers(genreListStat)
-            tagListStat,tagRankStat = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
+            genreListStat, average = recommendations.removeOutliers(genreListStat)
+            tagListStat,tagRankStat, average = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
         end = time.time()
         true_end = time.time()
 
@@ -268,6 +268,8 @@ class recommendations():
            to prevent rogue good or bad anime to skew the data too much'''
 
         total_deleted = 0
+        total_sum = 0
+        total_size = 0
 
         for val in dict:
 
@@ -294,9 +296,9 @@ class recommendations():
             else:
                 mean = np.mean(vals)
 
-            print("old mean: " + str(mean))
-            print("std: " + str(std))
-            print("length: " + str(old_len))
+            #print("old mean: " + str(mean))
+            #print("std: " + str(std))
+            #print("length: " + str(old_len))
 
             if(std == 0):
                 continue
@@ -339,18 +341,24 @@ class recommendations():
                 mean = np.average(vals, weights=weights[val])
             else:
                 mean = np.mean(vals)
+
+            total_sum += np.sum(vals)
+            total_size += len(vals)
+
             deleted = old_len - len(vals)
             total_deleted += deleted
             
-            print("new mean: " + str(mean))
-            print("deleted: " + str(deleted))
+            #print("new mean: " + str(mean))
+            #print("deleted: " + str(deleted))
 
         print("total deleted: " + str(total_deleted))
+        new_average = total_sum/total_size
+        print("new average: " + str(new_average))
 
         if(weights is not None):
-            return (dict, weights)
+            return (dict, weights, new_average)
         else:
-            return dict
+            return (dict, new_average)
 
     def calcGenreTagValues(genreListStat, tagListStat):
         pass
@@ -371,6 +379,7 @@ class recommendations():
 
         #weight the more newly watched animes in each genre more than the others
         genre_means = {}
+
         #loop through each genre
         for genre_title in genreListStat:
             
@@ -409,7 +418,39 @@ class recommendations():
             weighted_average = valManip.powKeepNeg(total/weighted_count,0.5)
             genre_means[genre_title] = weighted_average
 
+        #get the average of each tag, with the weighting being based on the tag ranks
+        tag_means = {}
+
+        #loop through each tag
+        for tag_title in tagListStat:
+
+            tag_vals = tagListStat[tag_title]
+            tag_ranks = tagRankStat[tag_title]
+
+
+            try:
+                size = len(tag_vals)
+            except:
+                size = 1
+                tag_vals = [tagListStat[tag_title]]
+                tag_ranks = [tagRankStat[tag_title]]
+
+            tag_vals = numpy.subtract(tag_vals, average)
+
+            weighted_average = numpy.average(tag_vals, weights=tag_ranks)
+
+            #apply the variable log multiple to add more weight to tags that have been more prevalent
+            if(size > 10):
+                multi = math.log(size, 12)
+            else:
+                multi = (1/18) * size + (4/9)
+
+            weighted_average *= multi
+
+            tag_means[tag_title] = [weighted_average, size, multi]
+
         print(genre_means)
+        print(tag_means)
 
             
 
