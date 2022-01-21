@@ -129,7 +129,7 @@ class recommendations():
     def getGenreTagValues(remove_outliers = False, centered_at = 0):
         global average
 
-        true_start = time.time()
+        #true_start = time.time()
 
         start = time.time()
 
@@ -256,7 +256,7 @@ class recommendations():
             genreListStat = recommendations.removeOutliers(genreListStat)
             tagListStat,tagRankStat = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
         end = time.time()
-        true_end = time.time()
+        #true_end = time.time()
 
         print("execution time to iterate through each anime in list: " + str(iter_time))
         print("execution time to remove outliers: " + str(end-start))
@@ -384,11 +384,11 @@ class recommendations():
         tagListStat = stats[1]
         tagRankStat = stats[2]
         recListStat = stats[3]
-        animeCount = stats[4]
+        #animeCount = stats[4]
         detListPTW = stats[5]
         average = stats[6]
 
-        print("average: " + str(average))
+        #print("average: " + str(average))
 
         #weight the more newly watched animes in each genre more than the others
         genre_means = {}
@@ -522,14 +522,14 @@ class recommendations():
             if title in recListStat:
                 for values in recListStat[title]:
                     #print(values)
-                    recVal += (values[0] * (values[1] - average))
+                    recVal *= 1 + ((values[0] * (values[1] - average)/10))
 
             else:
                 pass
                 #print("%s has no user recommendations" % title)
 
 
-            result_value = ((score) ** genreVal) * (tagVal * recVal)
+            result_value = ((score * recVal) ** genreVal) * (tagVal)
             try:  
                 result_value = int(result_value)
             except:
@@ -541,7 +541,7 @@ class recommendations():
                 print(title)
                 exit()
 
-            list_rec[title] = result_value
+            list_rec[title] = [result_value, score, genreVal, tagVal, recVal]
 
         calc_time = time.time() - start
 
@@ -549,9 +549,12 @@ class recommendations():
 
         sortedRec = sorted(list_rec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
 
+        path = "test.txt"
+
         for x in range(0,len(sortedRec)): #gets the list titles in order
+            #file.write(str(sortedRec[x]) + "\n")
             sortedRec[x] = str(sortedRec[x][0])
-            #print(sortedRec[x])
+            
 
         #print(sortedRec)
 
