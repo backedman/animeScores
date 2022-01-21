@@ -1,3 +1,4 @@
+from ctypes import sizeof
 import AniListAPI.animeList
 import AniListAPI.AniListCalls
 from AniListAPI.AniListAccess import *
@@ -125,15 +126,15 @@ class recommendations():
 
         return sortedRec
 
-    def getGenreTagValues(remove_outliers = False):
+    def getGenreTagValues(remove_outliers = False, centered_at = 0):
         global average
-
-        animeListDet = animeList.getAnimeListDet(sort="FINISHED_ON") #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
-        detListPTW = {}
 
         true_start = time.time()
 
         start = time.time()
+
+        animeListDet = animeList.getAnimeListDet(sort="FINISHED_ON") #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
+
         detListPTW = AniListCalls.getAllAnime(True)
         end = time.time()
 
@@ -172,7 +173,7 @@ class recommendations():
 
                 name = detAnime['media']['title']['userPreferred']
                 
-                print(status + " " + name)
+                #print(status + " " + name)
 
                 if((scoreValue) == 0):
                     animeCount -= 1
@@ -206,6 +207,9 @@ class recommendations():
                         tagListStat[tagTitle] = np.append(tagListStat[tagTitle], tagValue)
                         tagRankStat[tagTitle] = np.append(tagRankStat[tagTitle], tagRank)
 
+                rating_values = np.array([])
+                titles = np.array([])
+
                 for recommendation in detAnime['media']['recommendations']['edges']:
                     recommendation = recommendation['node']
 
@@ -217,19 +221,29 @@ class recommendations():
                     except:
                         continue
 
-
                     if(rating <= 0):
                         continue
-                    if(rating > 50):
-                        rating = 50
 
+                    rating_values = np.append(rating_values, rating)
+                    titles = np.append(titles,title)
 
-                    recValue = scoreValue * (rating ** 0.25)
+                if(len(rating_values) == 0):
+                    continue
 
+                sum = np.sum(rating_values)
+                rating_values = np.reshape(np.divide(rating_values,sum), (-1))
+
+                for i, title in enumerate(titles):
                     if title not in recListStat:
-                        recListStat[title] = np.array(recValue)
+                        #print(title)
+                        recListStat[title] = np.array([[rating_values[i], scoreValue]])
                     else:
-                        recListStat[title] = np.append(recListStat[title], recValue)
+                        #print(title)
+                        #print(rating_values[i])
+                        #print(recListStat[title])
+                        recListStat[title] = np.vstack((recListStat[title], [rating_values[i], scoreValue]))
+
+        #print(recListStat[title])
 
         average = totalScore/animeCount
 
@@ -239,17 +253,14 @@ class recommendations():
 
         start = time.time()
         if(remove_outliers):
-            genreListStat, average = recommendations.removeOutliers(genreListStat)
-            tagListStat,tagRankStat, average = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
+            genreListStat = recommendations.removeOutliers(genreListStat)
+            tagListStat,tagRankStat = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
         end = time.time()
         true_end = time.time()
 
         print("execution time to iterate through each anime in list: " + str(iter_time))
         print("execution time to remove outliers: " + str(end-start))
-        print("total execution time: " + str(true_end - true_start))
-
-                
-
+        #print("total execution time: " + str(true_end - true_start))
         #print("average score: " + str(totalScore/animeCount))
 
         
@@ -284,7 +295,7 @@ class recommendations():
             if(old_len < 5):
                 continue
             
-            print("-------------------%s------------------------" % val)
+            #print("-------------------%s------------------------" % val)
             std = np.std(vals)
 
 
@@ -351,14 +362,14 @@ class recommendations():
             #print("new mean: " + str(mean))
             #print("deleted: " + str(deleted))
 
-        print("total deleted: " + str(total_deleted))
-        new_average = total_sum/total_size
-        print("new average: " + str(new_average))
+        #print("total deleted: " + str(total_deleted))
+        #new_average = total_sum/total_size
+        #print("new average: " + str(new_average))
 
         if(weights is not None):
-            return (dict, weights, new_average)
+            return (dict, weights)
         else:
-            return (dict, new_average)
+            return (dict)
 
     def calcGenreTagValues(genreListStat, tagListStat):
         pass
@@ -366,7 +377,9 @@ class recommendations():
     def findReccomendedLegacy():
         '''Original recommendation algorithm. Hand crafted based on the score, tags, and genres of an anime based on the anime you have already watched. Returns a sorted Plan to Watch list'''
 
-        stats = recommendations.getGenreTagValues(remove_outliers=True)
+        true_start = time.time()
+
+        stats = recommendations.getGenreTagValues(remove_outliers=True, centered_at="average")
         genreListStat = stats[0]
         tagListStat = stats[1]
         tagRankStat = stats[2]
@@ -380,6 +393,7 @@ class recommendations():
         #weight the more newly watched animes in each genre more than the others
         genre_means = {}
 
+        start = time.time()
         #loop through each genre
         for genre_title in genreListStat:
             
@@ -416,8 +430,19 @@ class recommendations():
                     curr -= slice_size
 
             weighted_average = valManip.powKeepNeg(total/weighted_count,0.5)
+            
+
+            #scale the value so it would rarely go over 2
+            if(weighted_average > 0):
+                weighted_average /= 5/2
+            else: #scale the value so it would rarely go under -2/3
+                weighted_average /= 15/2
+
             genre_means[genre_title] = weighted_average
 
+        genre_time = time.time() - start
+
+        start = time.time()
         #get the average of each tag, with the weighting being based on the tag ranks
         tag_means = {}
 
@@ -447,10 +472,105 @@ class recommendations():
 
             weighted_average *= multi
 
-            tag_means[tag_title] = [weighted_average, size, multi]
+            #scale the value so it would rarely go over 1
+            if(weighted_average > 0):
+                weighted_average /= 5
+            else: #scale the value so it would rarely go below -0.5x
+                weighted_average /= 10
 
-        print(genre_means)
-        print(tag_means)
+
+            tag_means[tag_title] = weighted_average
+
+        tag_time = time.time() - start
+
+        start = time.time()
+
+        #iterate through all anime and apply equation
+        list_rec = {}
+
+        for anime in detListPTW:
+            
+            #print(anime)
+
+            title = anime['title']['userPreferred']
+            score = anime['averageScore']
+            if(score is None):
+                continue
+
+            #get genre values
+            genreVal = 1
+            for genre in anime['genres']:
+                try:
+                    genreVal *= (1 + genre_means[genre])
+                except:
+                    pass
+                    #print("%s genre excluded/ignored" % genre)
+
+            #get tag value
+            tagVal = 1
+            for tag in anime['tags']:
+                tag_title = tag['name']
+                tag_rank = tag['rank']
+                try:
+                    tagVal *= (1 + (tag_means[tag_title] * (tag_rank/100)))
+                except:
+                    pass
+                    #print("%s tag exclused/ignored" % tag_title)
+
+            #get user recommendations
+            recVal = 1
+            if title in recListStat:
+                for values in recListStat[title]:
+                    #print(values)
+                    recVal += (values[0] * (values[1] - average))
+
+            else:
+                pass
+                #print("%s has no user recommendations" % title)
+
+
+            result_value = ((score) ** genreVal) * (tagVal * recVal)
+            try:  
+                result_value = int(result_value)
+            except:
+                print(result_value)
+                print(genreVal)
+                print(score)
+                print(tagVal)
+                print(recVal)
+                print(title)
+                exit()
+
+            list_rec[title] = result_value
+
+        calc_time = time.time() - start
+
+        start = time.time()
+
+        sortedRec = sorted(list_rec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
+
+        for x in range(0,len(sortedRec)): #gets the list titles in order
+            sortedRec[x] = str(sortedRec[x][0])
+            #print(sortedRec[x])
+
+        #print(sortedRec)
+
+        sort_time = time.time() - start
+
+        total_time = time.time() - true_start
+
+
+
+        #print(genre_means)
+        #print(tag_means)
+
+        print("execution time to get the mean of the genres: " + str(genre_time))
+        print("execution time to get the weighted average of the tags: " + str(tag_time))
+        print("execution time to get evaluate all the anime: " + str(calc_time))
+        print("execution time to sort the anime: " + str(sort_time))
+        print("total execution time: " + str(total_time))
+
+        return sortedRec
 
             
 
