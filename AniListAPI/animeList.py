@@ -234,19 +234,16 @@ class animeList():
 
             #print(List)
 
-            print("10% done")
-            sys.stdout.write("\033[F")
-
+            progress = 10
+            print(str(int(progress)) + "% done", end="\r")
             slices = 80/len(List)
-            curr = 10
 
             for anime in List:
 
                 anime = anime['media']
 
-                print(str(int(curr)) + "% done")
-                sys.stdout.write("\033[F")
-                curr += slices
+                print(str(int(progress)) + "% done", end="\r")
+                progress += slices
 
 
                 if(animeListType == "ALL"):
@@ -271,15 +268,13 @@ class animeList():
             Path = valManip.getPath() + "data.txt"
 
             curr = 95
-            print(str(curr) + "% done")
-            sys.stdout.write("\033[F")
+            print(str(int(progress)) + "% done", end="\r")
 
             with open(Path, "r+") as json_file:
                 json.dump(animeData, json_file, indent = 4, ensure_ascii = True)
 
             curr = 100
-            print(str(curr) + "% done")
-            sys.stdout.write("\033[F")
+            print(str(int(progress)) + "% done", end="\r")
 
         elif(animeName is not None or status is not None):
 

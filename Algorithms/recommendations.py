@@ -379,6 +379,11 @@ class recommendations():
 
         true_start = time.time()
 
+        progress = 0
+        print(str(int(progress)) + "% done", end="\r")
+        
+
+
         stats = recommendations.getGenreTagValues(remove_outliers=True, centered_at="average")
         genreListStat = stats[0]
         tagListStat = stats[1]
@@ -395,6 +400,13 @@ class recommendations():
 
         start = time.time()
         #loop through each genre
+
+        progress = 5
+        print(str(int(progress)) + "% done", end="\r")
+        
+
+
+        slices = 20/len(genreListStat)
         for genre_title in genreListStat:
             
             genre_vals = genreListStat[genre_title] 
@@ -420,11 +432,16 @@ class recommendations():
             slice_size = (max-min)/size
             curr = max
             
+            slices2 = slices/len(genre_vals)
 
 
             for score in reversed(genre_vals):
                 total += valManip.powKeepNeg(score - average,2) * curr
                 weighted_count += curr
+
+                progress += slices2
+                print(str(int(progress)) + "% done", end="\r")
+                
                 
                 if(curr > 1):
                     curr -= slice_size
@@ -443,6 +460,7 @@ class recommendations():
         genre_time = time.time() - start
 
         start = time.time()
+        slices = 20/len(tagListStat)
         #get the average of each tag, with the weighting being based on the tag ranks
         tag_means = {}
 
@@ -452,6 +470,9 @@ class recommendations():
             tag_vals = tagListStat[tag_title]
             tag_ranks = tagRankStat[tag_title]
 
+            progress += slices
+            print(str(int(progress)) + "% done", end="\r")
+            
 
             try:
                 size = len(tag_vals)
@@ -487,10 +508,15 @@ class recommendations():
 
         #iterate through all anime and apply equation
         list_rec = {}
+        slices = 45/len(detListPTW)
 
         for anime in detListPTW:
             
             #print(anime)
+
+            progress += slices
+            print(str(int(progress)) + "% done", end="\r")
+            
 
             if(anime['mediaListEntry'] is not None):
 
@@ -560,11 +586,19 @@ class recommendations():
 
         sortedRec = sorted(list_rec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
 
+        
+
         path = "test.txt"
+
+        slices = 10/len(detListPTW)
 
         for x in range(0,len(sortedRec)): #gets the list titles in order
             #file.write(str(sortedRec[x]) + "\n")
             sortedRec[x] = str(sortedRec[x][0])
+            
+            progress += slices
+            print(str(int(progress)) + "% done", end="\r")
+            
             
 
         #print(sortedRec)
