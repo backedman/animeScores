@@ -6,6 +6,7 @@ import numpy
 from runnables.config import *
 from AniListAPI.AniListCalls import *
 from AniListAPI.updateAnime import *
+from AniListAPI.animeList import *
 from Algorithms.valManip import *
 from neuralNetwork.neuralNet import *
 
@@ -100,6 +101,8 @@ class animeFile:
         self.writeToFile()
         self.updateStats()
 
+        animeList.updateFullAnime(animeName=self.animeName, status=self.status)
+
         
 
     def userPrompt(self):
@@ -180,8 +183,9 @@ class animeFile:
             self.epCurrent = epCurrent
             self.epTotal = epTotal
 
-            #updates episode count
+            #updates episode count and stats on website
             self.updateScores()
+            self.updateStats()
 
             #updates data list in instance
             self.Data = Data

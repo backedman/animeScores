@@ -112,6 +112,8 @@ def main():
                 titleList = recommendations.findReccomendedLegacy()
             elif(ans == "2"):
                 titleList = recommendations.findReccomended()
+
+            
            
 
 
@@ -124,6 +126,7 @@ def main():
             print("3. Mass update scores")
             print("4. Neural Network")
             print("5. Mass change status")
+            print("6. update recommended (removes newly completed ")
 
             ans = int(input())
 
@@ -293,9 +296,13 @@ def main():
 
                 print("SELECT ANIME (choose each number and seperate the numbers by commas (ex. 1,2,3)")
 
-                #
 
-            elif(ans == 6): #score predictor based on recommendations neural network
+            elif(ans == 6):
+                start = time.time()
+                animeList.updateFullAnime(animeListType="ALL")
+                print("execution time: " + str(time.time() - start))
+
+            elif(ans == 7): #score predictor based on recommendations neural network
                  
                  nnRec = recNeuralNet()
                  

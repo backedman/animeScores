@@ -257,7 +257,7 @@ class updateAnime():
 
         pass
 
-
+	
 
 
 
