@@ -164,7 +164,7 @@ def main():
                 
                 #gets new anime list
                 aniList = animeList.updateAniListAnimeList()
-                updateFiles.moveAllFiles(updateInfo = True) #moves the files as they corresond to the anime list
+                updateFiles.moveAllFiles() #moves the files as they corresond to the anime list
                 titleList = animeList.getTitleList(status) #gets the titles based on the list
 
 
