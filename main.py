@@ -126,7 +126,7 @@ def main():
             print("3. Mass update scores")
             print("4. Neural Network")
             print("5. Mass change status")
-            print("6. update recommended (removes newly completed ")
+            print("6. update recommended (only do this if the recommendation list contains anime you've already watched)")
 
             ans = int(input())
 
