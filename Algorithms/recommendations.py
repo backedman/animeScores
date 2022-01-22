@@ -492,8 +492,19 @@ class recommendations():
             
             #print(anime)
 
+            if(anime['mediaListEntry'] is not None):
+
+                status = anime['mediaListEntry']['status']
+                
+                if(status == "COMPLETED" or status == "DROPPED" or status == "CURRENT"):
+                    continue
+
             title = anime['title']['userPreferred']
             score = anime['averageScore']
+
+            if(title == "Higashi no Eden"):
+                print(anime)
+
             if(score is None):
                 continue
 
@@ -574,12 +585,4 @@ class recommendations():
         print("total execution time: " + str(total_time))
 
         return sortedRec
-
-            
-
-
-
-
-
-        pass
 

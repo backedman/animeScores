@@ -130,7 +130,7 @@ class AniListCalls():
                     anime = animeData[index]
                     if(anime['mediaListEntry'] != None):
                         status = anime['mediaListEntry']['status']
-                        if(status != "PLANNING" and status != "PAUSED" and status != "CURRENT"):
+                        if(status == "COMPLETED" or status == "DROPPED" or status == "CURRENT"):
                             animeData.pop(index)
                             index -= 1
                     index += 1
