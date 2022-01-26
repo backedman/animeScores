@@ -394,16 +394,7 @@ class animeList():
         '''returns an alphabetically sorted anime list'''
         return Sort.qSort(aniList)
 
-    
-
-
-
-
-        #returns json data of anime
-        animeData = (AniListAccess.getData(query, variables))['data']['Media']
-
-        return animeData
-
+        
     def getAnimeListDet(sort=None):
         global animeListDet
 
