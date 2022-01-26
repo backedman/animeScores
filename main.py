@@ -112,17 +112,13 @@ def main():
 
 
             while True:
-                try:
-                    ans = input()
-                    result = recommendations.process_input(ans)
-                except Exception as e:
-                    traceback.print_exc()
-
-
-            if(ans == "1"):
-                titleList = recommendations.findReccomendedLegacy()
-            elif(ans == "2"):
-                titleList = recommendations.findReccomended()
+                ans = input()
+                
+                result = recommendations.process_input(ans)
+                
+                if(result is not None):
+                    titleList = result
+                    break
 
             
            

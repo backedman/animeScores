@@ -522,6 +522,21 @@ class recommendations():
 
         start = time.time()
 
+        for genre in priority_genres:
+            if(genre in genre_means and genre_means[genre] > 0):
+                genre_means[genre] += 3
+            else:
+                genreListStat[genre] = 3
+
+        for tag in priority_tags:
+            if(tag in tag_means and tag_means[tag] > 0):
+                tag_means[genre] += 3
+            else:
+                tag_means[genre] = 3
+
+        print(genre_means)
+        print(tag_means)
+
         #iterate through all anime and apply equation
         list_rec = {}
         slices = 45/len(detListPTW)
@@ -657,19 +672,22 @@ class recommendations():
         values = list(filter(None, values))
 
 
+
         next = ""
+        legacy = True
+        
         genres = []
         tags = []
+
         genretags = AniListCalls.getAllGenreTags()
         genre_list = genretags[0]
         tag_list = genretags[1]
+
         if(values[0] == "r"):
             for x in values:
-                print(x)
                 if(x == "-g=" or x == "-genre="):
                     next = "genre"
                 elif(x == "-list"):
-                    print("here")
                     genre_list = genretags[0]
                     tag_list = genretags[1]
 
@@ -680,24 +698,47 @@ class recommendations():
                     for tag in tag_list:
                         print(tag)
 
-                    return True
+                    return
+                
+                elif(x == "-glist"):
+                    print("-----GENRES-------")
+                    for genre in genre_list:
+                        print(genre)
+
+                    return
+                
+                elif(x == "-tlist"):
+                    print("------TAGS---------")
+                    for tag in tag_list:
+                        print(tag)
 
                 elif(x == "-t=" or x == "-tag="):
                     next = "tag"
+
                 elif(next == "genre"):
                     genres += (x.split(","))
                     next = ""
+
                 elif(next == "tag"):
                     tags += x.split(",")
                     next = ""
+        else:
+            return
+
 
         for genre in genres:
             if(not genre in genre_list):
+                genre.remove(genre)
                 print(genre + " IS NOT A VALID GENRE")
 
         for tag in tags:
             if(not tag in tag_list):
+                tags.remove(tag)
                 print(tag + " IS NOT A VALID TAG")
 
+        if(legacy):
+            recommendation_list = recommendations.findReccomendedLegacy(priority_genres=genres, priority_tags=tags)
+        else:
+            recommendation_list = recommendations.findReccomended()
 
-        return genres + tags
+        return recommendation_list
