@@ -103,10 +103,21 @@ def main():
             titleList = AniListCalls.getAnimeSearchList(animeName, 5)
 
         elif (ans == "R" or ans == "r"):
-            print("1. Normal (recommended)")
-            print("2. Experimental")
+            
+            recommendations_help()
+            
+            #print("1. Normal (recommended)")
+            #print("2. Experimental")
 
-            ans = input()
+
+
+            while True:
+                try:
+                    ans = input()
+                    result = recommendations.process_input(ans)
+                except Exception as e:
+                    traceback.print_exc()
+
 
             if(ans == "1"):
                 titleList = recommendations.findReccomendedLegacy()
@@ -367,6 +378,39 @@ def main():
 def addSpacing():
     for x in range(50):
        print("              ")
+
+def recommendations_help():
+    print(
+    '''
+
+    About:
+        A recommendation algorithm that uses your anilist scores to present 
+
+    Usage:
+      r [options]
+
+    General Options:
+      -g, -genre="Genre"             Manually prioritize a certain genre when finding recommendations
+      -rg, -restrictgenre="Genre"    Manually unprioritizes a certain genre when finding recommendations
+      -glist                         Print out a list of all the available genres
+
+      -t, -tag="Tag"                 Manually prioritize a certain tag when finding recommendations
+      -rt, -restricttag="Genre"      Manually unprioritizes a certain tag when finding recommendations
+      -tlist                         Print out a list of all the available tags
+
+      -alg, -algo, 
+      -algorithm="Algorithm"         Pick the recommendation algorithm used (options: "Regular" or "Experimental")
+                                     Regular is recommended and is the default.
+
+    *Note: Multiple genres and tags can be used with one option if seperated by a comma
+
+    Example: r -g="Comedy,Adventure" -rt="Male Protagonist" ---> recommendation algorithm prioritizing Comedy and Adventure 
+                                                                 anime and deprioritizing anime with Male Protagonists
+
+
+    
+    '''    
+    )
 
 
 

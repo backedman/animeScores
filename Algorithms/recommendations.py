@@ -392,7 +392,7 @@ class recommendations():
     def calcGenreTagValues(genreListStat, tagListStat):
         pass
 
-    def findReccomendedLegacy():
+    def findReccomendedLegacy(priority_genres = None, priority_tags = None):
         '''Original recommendation algorithm. Hand crafted based on the score, tags, and genres of an anime based on the anime you have already watched. Returns a sorted Plan to Watch list'''
 
         true_start = time.time()
@@ -632,3 +632,72 @@ class recommendations():
 
         return sortedRec
 
+    def process_input(input):
+
+        between_quote=""
+        values = []
+        Start = False
+        for char in input:
+
+            if(char == '"'):
+                Start = not Start
+                values.append(between_quote)
+                between_quote = ""
+            elif(Start):
+                between_quote += char
+            else:
+                if(char is not " "):
+                    between_quote += char
+                else:
+                    values.append(between_quote)
+                    between_quote = ""
+
+        values.append(between_quote)
+
+        values = list(filter(None, values))
+
+
+        next = ""
+        genres = []
+        tags = []
+        genretags = AniListCalls.getAllGenreTags()
+        genre_list = genretags[0]
+        tag_list = genretags[1]
+        if(values[0] == "r"):
+            for x in values:
+                print(x)
+                if(x == "-g=" or x == "-genre="):
+                    next = "genre"
+                elif(x == "-list"):
+                    print("here")
+                    genre_list = genretags[0]
+                    tag_list = genretags[1]
+
+                    print("-----GENRES-------")
+                    for genre in genre_list:
+                        print(genre)
+                    print("------TAGS---------")
+                    for tag in tag_list:
+                        print(tag)
+
+                    return True
+
+                elif(x == "-t=" or x == "-tag="):
+                    next = "tag"
+                elif(next == "genre"):
+                    genres += (x.split(","))
+                    next = ""
+                elif(next == "tag"):
+                    tags += x.split(",")
+                    next = ""
+
+        for genre in genres:
+            if(not genre in genre_list):
+                print(genre + " IS NOT A VALID GENRE")
+
+        for tag in tags:
+            if(not tag in tag_list):
+                print(tag + " IS NOT A VALID TAG")
+
+
+        return genres + tags

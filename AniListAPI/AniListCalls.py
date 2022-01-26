@@ -238,7 +238,9 @@ class AniListCalls():
             }
 
         #returns anime results list
-        animeData = (AniListAccess.getData(query,variables)['data'])
+        animeData = (AniListAccess.getData(query,variables))['data']
+
+        print(animeData)
 
         #splits tags and genres into seperate lists
         genre = animeData['GenreCollection']
