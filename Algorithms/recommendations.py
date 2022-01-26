@@ -126,14 +126,20 @@ class recommendations():
 
         return sortedRec
 
-    def getGenreTagValues(remove_outliers = False, centered_at = 0):
+    def getGenreTagValues(remove_outliers = False, progress_bar_start=0, progress_bar_end=100):
         global average
 
         #true_start = time.time()
+        progress = progress_bar_start
+        print(str(int(progress)) + "% done", end="\r")
+
 
         start = time.time()
 
         animeListDet = animeList.getAnimeListDet(sort="FINISHED_ON") #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
+
+        progress += (progress_bar_end - progress_bar_start) * 0.05
+        print(str(int(progress)) + "% done", end="\r")
 
         detListPTW = AniListCalls.getAllAnime(True)
         end = time.time()
@@ -155,6 +161,8 @@ class recommendations():
 
         start = time.time()
 
+        slices = (progress_bar_end - progress_bar_start) * 0.9/len(animeListDet)
+        
         for detList in animeListDet: #iterates through each anime list
 
             if(detList['status'] == "PLANNING" or detList['status'] == "CURRENT"):
@@ -165,7 +173,8 @@ class recommendations():
             detList = detList['entries']
             animeCount += len(detList)
 
-
+            
+            slices2 = slices/len(detList)
 
             for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
 
@@ -243,6 +252,9 @@ class recommendations():
                         #print(recListStat[title])
                         recListStat[title] = np.vstack((recListStat[title], [rating_values[i], scoreValue]))
 
+                progress += slices2
+                print(str(int(progress)) + "% done", end="\r")
+
         #print(recListStat[title])
 
         average = totalScore/animeCount
@@ -251,11 +263,17 @@ class recommendations():
         iter_time = end-start
 
 
+
+
         start = time.time()
         if(remove_outliers):
             genreListStat = recommendations.removeOutliers(genreListStat)
             tagListStat,tagRankStat = recommendations.removeOutliers(tagListStat, weights=tagRankStat)
         end = time.time()
+
+        progress += (progress_bar_end - progress_bar_start) * 0.05
+        print(str(int(progress)) + "% done", end="\r")
+
         #true_end = time.time()
 
         print("execution time to iterate through each anime in list: " + str(iter_time))
@@ -384,7 +402,7 @@ class recommendations():
         
 
 
-        stats = recommendations.getGenreTagValues(remove_outliers=True, centered_at="average")
+        stats = recommendations.getGenreTagValues(remove_outliers=True, progress_bar_start=progress, progress_bar_end=30)
         genreListStat = stats[0]
         tagListStat = stats[1]
         tagRankStat = stats[2]
@@ -401,12 +419,10 @@ class recommendations():
         start = time.time()
         #loop through each genre
 
-        progress = 5
+        progress = 30
         print(str(int(progress)) + "% done", end="\r")
-        
 
-
-        slices = 20/len(genreListStat)
+        slices = 10/len(genreListStat)
         for genre_title in genreListStat:
             
             genre_vals = genreListStat[genre_title] 
@@ -460,7 +476,7 @@ class recommendations():
         genre_time = time.time() - start
 
         start = time.time()
-        slices = 20/len(tagListStat)
+        slices = 10/len(tagListStat)
         #get the average of each tag, with the weighting being based on the tag ranks
         tag_means = {}
 
@@ -527,10 +543,6 @@ class recommendations():
 
             title = anime['title']['userPreferred']
             score = anime['averageScore']
-
-            if(title == "Higashi no Eden"):
-                print(anime)
-
             if(score is None):
                 continue
 
@@ -590,7 +602,7 @@ class recommendations():
 
         path = "test.txt"
 
-        slices = 10/len(detListPTW)
+        slices = 5/len(detListPTW)
 
         for x in range(0,len(sortedRec)): #gets the list titles in order
             #file.write(str(sortedRec[x]) + "\n")
