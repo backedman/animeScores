@@ -392,7 +392,7 @@ class recommendations():
     def calcGenreTagValues(genreListStat, tagListStat):
         pass
 
-    def findReccomendedLegacy(priority_genres = None, priority_tags = None):
+    def findReccomendedLegacy(priority_genres = None, priority_tags = None, restrict_genres = None, restrict_tags = None):
         '''Original recommendation algorithm. Hand crafted based on the score, tags, and genres of an anime based on the anime you have already watched. Returns a sorted Plan to Watch list'''
 
         true_start = time.time()
@@ -522,20 +522,46 @@ class recommendations():
 
         start = time.time()
 
+        print(priority_genres)
+
+        #prioritizes certain genres by increasing the mean by 3/2.5 (or making it 3/2.5 if the mean is less than 0)
         for genre in priority_genres:
             if(genre in genre_means and genre_means[genre] > 0):
-                genre_means[genre] += 3
+                genre_means[genre] += 3/2.5
             else:
-                genreListStat[genre] = 3
+                genreListStat[genre] = 3/2.5
 
+            print(genre + " is now " + str(genre_means[genre]))
+
+        #deprioritizes certain genres by decreasing the mean by -3/7.5 (or making it -3/7.5 if the mean is more than 0)
+        for genre in restrict_genres:
+            if(genre in genre_means and genre_means[genre] < 0):
+                genre_means[genre] -= 3/7.5
+            else:
+                genre_means[genre] -= 3/7.5
+
+            print(genre + " is now " + str(genre_means[genre]))
+        
+        #prioritizes certain tags by increasing the mean by 0.6 (or making it 0.6 if the mean is less than 0)
         for tag in priority_tags:
             if(tag in tag_means and tag_means[tag] > 0):
-                tag_means[genre] += 3
+                tag_means[tag] += 3/2.5
             else:
-                tag_means[genre] = 3
+                tag_means[tag] = 3/2.5
 
-        print(genre_means)
-        print(tag_means)
+            print(tag + " is now " + str(tag_means[tag]))
+
+        #deprioritizes certain tags by decreasing the mean by 0.3 (or making it -0.3 if the mean is more than 0)
+        for tag in restrict_tags:
+            if(tag in tag_means and tag_means[tag] < 0):
+                tag_means[tag] -= 0.3
+            else:
+                tag_means[tag] = -0.3
+
+            print(tag + "is now " + str(tag_means[tag]))
+
+        #print(genre_means)
+        #print(tag_means)
 
         #iterate through all anime and apply equation
         list_rec = {}
@@ -548,7 +574,7 @@ class recommendations():
             progress += slices
             print(str(int(progress)) + "% done", end="\r")
             
-
+            #skip anime that have been completed, are dropped, or are being currently watched
             if(anime['mediaListEntry'] is not None):
 
                 status = anime['mediaListEntry']['status']
@@ -586,17 +612,17 @@ class recommendations():
             if title in recListStat:
                 for values in recListStat[title]:
                     #print(values)
-                    recVal *= 1 + ((values[0] * (values[1] - average)/10))
+                    recVal *= 1 + ((values[0] * (values[1] - average)/5))
 
             else:
                 pass
                 #print("%s has no user recommendations" % title)
 
 
-            result_value = ((score * recVal) ** genreVal) * (tagVal)
+            result_value = ((score * genreVal) ** recVal) * (tagVal) #recommendation value calculation for each anime using scores, recVals, genreVals, and tagVals
             try:  
                 result_value = int(result_value)
-            except:
+            except: #print out the information about the anime that caused the result_value to fail
                 print(result_value)
                 print(genreVal)
                 print(score)
@@ -605,22 +631,21 @@ class recommendations():
                 print(title)
                 exit()
 
-            list_rec[title] = [result_value, score, genreVal, tagVal, recVal]
+            list_rec[title] = [result_value, score, genreVal, tagVal, recVal] #store all the values inside a dict
 
         calc_time = time.time() - start
 
         start = time.time()
 
-        sortedRec = sorted(list_rec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest to lowest
-
+        sortedRec = sorted(list_rec.items(), key = operator.itemgetter(1), reverse = True) #sorts the list from highest result_value to lowest
         
-
-        path = "test.txt"
-
         slices = 5/len(detListPTW)
 
+        #gets just the title of the anime to return
+        #with open("test.txt", 'w') as file:
         for x in range(0,len(sortedRec)): #gets the list titles in order
             #file.write(str(sortedRec[x]) + "\n")
+            print(sortedRec[x])
             sortedRec[x] = str(sortedRec[x][0])
             
             progress += slices
@@ -677,7 +702,9 @@ class recommendations():
         legacy = True
         
         genres = []
+        res_genres = []
         tags = []
+        res_tags = []
 
         genretags = AniListCalls.getAllGenreTags()
         genre_list = genretags[0]
@@ -685,9 +712,7 @@ class recommendations():
 
         if(values[0] == "r"):
             for x in values:
-                if(x == "-g=" or x == "-genre="):
-                    next = "genre"
-                elif(x == "-list"):
+                if(x == "-list"):
                     genre_list = genretags[0]
                     tag_list = genretags[1]
 
@@ -712,8 +737,17 @@ class recommendations():
                     for tag in tag_list:
                         print(tag)
 
+                elif(x == "-g=" or x == "-genre="):
+                    next = "genre"
+
                 elif(x == "-t=" or x == "-tag="):
                     next = "tag"
+                
+                elif(x == "-rg=" or x == "-restrictgenre="):
+                    next = "res_genre"
+                
+                elif(x == "-rt=" or x == "-restricttag="):
+                    next = "res_tag"
 
                 elif(next == "genre"):
                     genres += (x.split(","))
@@ -725,6 +759,8 @@ class recommendations():
         else:
             return
 
+        print(genres)
+        print(tags)
 
         for genre in genres:
             if(not genre in genre_list):
@@ -737,7 +773,7 @@ class recommendations():
                 print(tag + " IS NOT A VALID TAG")
 
         if(legacy):
-            recommendation_list = recommendations.findReccomendedLegacy(priority_genres=genres, priority_tags=tags)
+            recommendation_list = recommendations.findReccomendedLegacy(priority_genres=genres, priority_tags=tags, restrict_genres=res_genres, restrict_tags=res_tags)
         else:
             recommendation_list = recommendations.findReccomended()
 

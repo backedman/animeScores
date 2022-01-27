@@ -307,9 +307,20 @@ def main():
             elif(ans == 6):
                 start = time.time()
                 animeList.updateFullAnime(animeListType="ALL")
-                print("execution time: " + str(time.time() - start))
+                print("execution time: " + str(time.time() - start))\
 
-            elif(ans == 7): #score predictor based on recommendations neural network
+            # exits program if user chooses "X"
+            elif (ans == "x" or ans == "X"):
+                    break
+
+            # chooses corresponding animeName if user chooses a number between 1 and 9
+            elif (int(ans) < 10 and int(ans) > 0):
+                listIndex = int(ans) - 1 + (page - 1) * 9
+                animeName = titleList[listIndex]
+
+                aniShow = animeFile(animeName, status)
+
+"""         elif(ans == 7): #score predictor based on recommendations neural network
                  
                  nnRec = recNeuralNet()
                  
@@ -353,22 +364,13 @@ def main():
 
                     animeValue = nnRec.predict(genreTagBinary, averageScore) #predicts score of anime
 
-                    print(animeName + ": " + str(animeValue)) #prints score of anime to user
+                    print(animeName + ": " + str(animeValue)) #prints score of anime to user """
 
 
 
 
 
-        # exits program if user chooses "X"
-        elif (ans == "x" or ans == "X"):
-                break
 
-        # chooses corresponding animeName if user chooses a number between 1 and 9
-        elif (int(ans) < 10 and int(ans) > 0):
-            listIndex = int(ans) - 1 + (page - 1) * 9
-            animeName = titleList[listIndex]
-
-            aniShow = animeFile(animeName, status)
             
 
 def addSpacing():
@@ -388,15 +390,14 @@ def recommendations_help():
     General Options:
       -g, -genre="Genre"             Manually prioritize a certain genre when finding recommendations
       -rg, -restrictgenre="Genre"    Manually unprioritizes a certain genre when finding recommendations
-      -glist                         Print out a list of all the available genres
+
 
       -t, -tag="Tag"                 Manually prioritize a certain tag when finding recommendations
       -rt, -restricttag="Genre"      Manually unprioritizes a certain tag when finding recommendations
+      
+      -list                          Print out a list of all the available genres and tags
+      -glist                         Print out a list of all the available genres
       -tlist                         Print out a list of all the available tags
-
-      -alg, -algo, 
-      -algorithm="Algorithm"         Pick the recommendation algorithm used (options: "Regular" or "Experimental")
-                                     Regular is recommended and is the default.
 
     *Note: Multiple genres and tags can be used with one option if seperated by a comma
 
