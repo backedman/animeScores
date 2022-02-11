@@ -124,87 +124,13 @@ class animeList():
  
         pass
 
-    def updateAnimeListDet(user="", sort="MEDIA_ID"):
+    def updateAnimeListDet(sort="MEDIA_ID"):
         '''gets animeLists from API'''
         
         global animeListPTW, animeListCompleted, animeListDropped, animeListPaused, animeListRepeating, animeListCurrent, animeListAll, statusTypes, animeListDet
-        if(user == ""):
-            userName = AniListAccess.getUserName()
-        else:
-            userName = user
-
-        if(sort is None):
-            sort = "MEDIA_ID"
-
-        #sets query to send to server.  This one asks for total number of
-        #pages, total anime, name of the anime in a page, and what list the
-        #anime is in
-        query = '''
-        query ($userName: String, $sortType: [MediaListSort])  {
-                MediaListCollection(userName : $userName,  type: ANIME, sort: $sortType) {
-                    
-                     lists {
-                          
-                          status
-
-                          entries {
-
-                            mediaId
-                            media {
-                              title{
-                                userPreferred
-                              }
-
-                              genres
-
-                              tags{
-                                name
-                                rank
-                                category
-                              }
-
-                              averageScore
-                              popularity
-
-                              mediaListEntry {
-                                score
-                              }
-
-                              recommendations{
-                                edges{
-                                    node{
-                                        rating
-                                        mediaRecommendation{
-                                            title{
-                                                userPreferred
-                                            }
-                                        }
-                                    }
-                        }
-                    }
-
-                            }
-
-                          }
-            }
-                }
-        }
-        '''
+        animeListDet = AniListCalls.retAnimeListDet(user="", sort=sort)
         
-        #sets correct information for the query.  If all anime in the list are
-        #wanted, then status is not set
-        variables = {
-            'userName' : userName,
-            'sortType' : sort
-        }
-
-        #requests data from API into a list
-        animeListData = AniListAccess.getData(query, variables)['data']['MediaListCollection']['lists']
-
-        if(user == "" or user == AniListAccess.getUserName()):
-            animeListDet = animeListData
-
-        return animeListData
+        return animeListDet
 
 
     def updateFullAnime(reaquire=False, animeListType=None, animeName=None, status=None):

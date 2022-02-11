@@ -53,7 +53,82 @@ class AniListCalls():
 
         return animeData
 
+    def retAnimeListDet(user="", sort="MEDIA_ID"):
+        
+        if(user == ""):
+            userName = AniListAccess.getUserName()
+        else:
+            userName = user
 
+        if(sort is None):
+            sort = "MEDIA_ID"
+
+        #sets query to send to server.  This one asks for total number of
+        #pages, total anime, name of the anime in a page, and what list the
+        #anime is in
+        query = '''
+        query ($userName: String, $sortType: [MediaListSort])  {
+                MediaListCollection(userName : $userName,  type: ANIME, sort: $sortType) {
+                    
+                     lists {
+                          
+                          status
+
+                          entries {
+
+                            mediaId
+                            media {
+                              title{
+                                userPreferred
+                              }
+
+                              genres
+
+                              tags{
+                                name
+                                rank
+                                category
+                              }
+
+                              averageScore
+                              popularity
+
+                              mediaListEntry {
+                                score
+                              }
+
+                              recommendations{
+                                edges{
+                                    node{
+                                        rating
+                                        mediaRecommendation{
+                                            title{
+                                                userPreferred
+                                            }
+                                        }
+                                    }
+                        }
+                    }
+
+                            }
+
+                          }
+            }
+                }
+        }
+        '''
+        
+        #sets correct information for the query.  If all anime in the list are
+        #wanted, then status is not set
+        variables = {
+            'userName' : userName,
+            'sortType' : sort
+        }
+
+        #requests data from API into a list
+        animeListData = AniListAccess.getData(query, variables)['data']['MediaListCollection']['lists']
+
+        return animeListData
 
     def getAnimeSearch(animeName):
         '''gets first search result of anime search'''

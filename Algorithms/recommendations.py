@@ -395,12 +395,21 @@ class recommendations():
     def findReccomendedLegacy(priority_genres = None, priority_tags = None, restrict_genres = None, restrict_tags = None):
         '''Original recommendation algorithm. Hand crafted based on the score, tags, and genres of an anime based on the anime you have already watched. Returns a sorted Plan to Watch list'''
 
+        print(recommendations.getGenreTagValues()[6])
+
         true_start = time.time()
 
         progress = 0
         print(str(int(progress)) + "% done", end="\r")
         
+        nn = recNeuralNet()
+        userDataSets = [AniListAccess.getUserName(), "MicchiMi", "snowwww", "Leonny", "shayoomshi", "g1appiah", "yuzurha"]
 
+        if(nn.isNewModel()): #if a new model was created, train the neural net. If a new model was not created, use the previously trained network.
+            for user in userDataSets:
+                nn.addDataSet(user)
+
+            nnRec.train()
 
         stats = recommendations.getGenreTagValues(remove_outliers=True, progress_bar_start=progress, progress_bar_end=30)
         genreListStat = stats[0]
@@ -617,6 +626,8 @@ class recommendations():
             else:
                 pass
                 #print("%s has no user recommendations" % title)
+
+            
 
 
             result_value = ((score * genreVal) ** recVal) * (tagVal) #recommendation value calculation for each anime using scores, recVals, genreVals, and tagVals

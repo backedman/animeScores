@@ -55,7 +55,7 @@ class updateFiles():
         animeListAll = animeList.getAnimeList(status="ALL")
 
         if(updateInfo == True):
-            animeListDet = animeList.updateAnimeListDet("", sort = "MEDIA_ID")
+            animeList.updateAnimeListDet("", sort = "MEDIA_ID")
 
         for status in statusTypes: #iterates through different statuses
 

@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
+import traceback
 
 class recNeuralNet:
     """description of class"""
@@ -47,112 +48,285 @@ class recNeuralNet:
         self.data.append(float(animeScore))
 
 
-        self.goal.append(userScore * 10)
+        self.goal.append(userScore)
 
     def addDataSet(self, user):
         global detListTotal
 
-        animeListDet = animeList.updateAnimeListDet(user)
+        #get lists from given user
+        userLists = AniListCalls.retAnimeListDet(user=user, sort="FINISHED_ON")
 
-        for status in range(0 , len(animeListDet)): #seperates entries of lists into Completed and Planning status
-            if(animeListDet[status]['status'] == "PLANNING"):
-                detListPTW = animeListDet[status]['entries']
-
-        genreTagStats = recNeuralNet.getGenreTagStats(animeListDet)
-
-        print(genreTagStats)
-
-        genreListStat = genreTagStats[0]
-        tagListStat = genreTagStats[1]
-        recListStat = genreTagStats[2]
+        #get genre, tag, and rec stats from the lists
+        stats = recNeuralNet.getGenreTagValues(remove_outliers = True, animeListDet=userLists)
+        genreListStat = stats[0]
+        tagListStat = stats[1]
+        tagRankStat = stats[2]
+        recListStat = stats[3]
 
 
 
+        #process the retrived values for each anime to get genre, tag, and rec values for each anime (as well as user score)
+        genre_means, tag_means = recNeuralNet.calcMeans(genreListStat, tagListStat, tagRankStat)
 
-        for detList in animeListDet:
-              
-            if(detList['status'] == "PLANNING"):
-                  continue
+        print(genre_means)
 
-            detList = detList['entries']
-
-            for detAnime in detList: #iterates through anime list
-                
-                try:
-                    userScore = detAnime['media']['mediaListEntry']['score']
-                except TypeError:
-                    continue
-
-                animeScore = detAnime['media']['averageScore']
-                genreValue = 0.0
-                tagValue = 0.0
-
-                for genres in detAnime['media']['genres']:
-                    try:
-                        if genres in genreListStat:
-                            for genreScore in genreListStat[genres]:
-                                genreValue += genreScore
-                    except:
-                        continue
-
-                for tags in detAnime['media']['tags']:
-
-                    tagTitle = tags['name']
-                    
-                    try:
-                        if tagTitle in tagListStat:
-                            for tagScore in tagListStat[tagTitle]:
-                                tagValue += tagScore
-                    except:
-                        continue
-
-                try:
-                    if animeName in recListStat:
-                        recValue = np.sum(recListStat[animeName])
-                except:
-                    recValue = 0
-                
-
-
-
-                    
-
-                if(animeScore != None and userScore != 0):
-                    print(valManip.sqrtKeepNeg(genreValue))
-                    self.add(float(valManip.sqrtKeepNeg(genreValue)), float(valManip.sqrtKeepNeg(tagValue)), recValue, animeScore, userScore) #adds the genreValue, tagValue, animeScore, and userScore to the neural network data
-                    genreValue = 0
-                    tagValue = 0
-
-    def getGenreTagStats(animeListDet):
-
-        #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
-        genreListStat = {}
-        genreTotal = 0
-        tagListStat = {}
-        tagTotal = 0
-        recListStat = {}
+        #get genre, tag, and rec values for each anime
+        values = recNeuralNet.calcValues(genre_means, tag_means, recListStat, userLists)
 
         
-        for detList in animeListDet: #iterates through each anime list type
+        for data in values.values():
+
+            score = data[0]
+            genreVal = data[1]
+            tagVal = data[2]
+            recVal = data[3]
+            scoreValue = data[4]
+            print(data)
+
+            self.add(genreVal, tagVal, recVal, score, scoreValue)
+
+
+                
+    def calcMeans(genreListStat, tagListStat, tagRankStat):
+                #get the genre_means, tag_means, and the rec_values from the user
+
+        start = time.time()
+        print(average)
+
+        genre_means = {}
+        tag_means = {}
+
+        progress = 30
+        print(str(int(progress)) + "% done", end="\r")
+
+        slices = 10/len(genreListStat)
+        for genre_title in genreListStat:
+            
+            genre_vals = genreListStat[genre_title] 
+
+            try:
+                size = len(genre_vals)
+            except:
+                size = 1
+                genre_vals = [genreListStat[genre_title]]
+            
+            weighted_count = 0
+            total = 0
+
+            '''create identical slices based on the amount in the genre.
+               The weighting of the anime goes from 3x to the most recent anime down to 1x for the oldest
+               anime in the genre. The weighting only applies to up to the most recent 30 anime completed.
+               Everything older than the 30 anime will have 1x weighting.
+               If there is less than 20 anime in the genre, the weighting starts from 2x.
+               If there is less than 10 anime in the genre, the weighting starts from 1.5x'''
+            max = 3 if size > 20 else 2 if size > 10 else 1.5
+            min = 1
+            size = 30 if size > 30 else size
+            slice_size = (max-min)/size
+            curr = max
+            
+            slices2 = slices/len(genre_vals)
+
+
+            for score in reversed(genre_vals):
+                total += valManip.powKeepNeg(score - average,2) * curr
+                weighted_count += curr
+
+                progress += slices2
+                print(str(int(progress)) + "% done", end="\r")
+                
+                
+                if(curr > 1):
+                    curr -= slice_size
+
+            weighted_average = valManip.powKeepNeg(total/weighted_count,0.5)
+            
+
+            #scale the value so it would rarely go over 2
+            if(weighted_average > 0):
+                weighted_average /= 5/2
+            else: #scale the value so it would rarely go under -2/3
+                weighted_average /= 15/2
+
+            genre_means[genre_title] = weighted_average
+
+        genre_time = time.time() - start
+
+        start = time.time()
+        slices = 10/len(tagListStat)
+
+        #get the average of each tag, with the weighting being based on the tag ranks
+        for tag_title in tagListStat:
+
+            tag_vals = tagListStat[tag_title]
+            tag_ranks = tagRankStat[tag_title]
+
+            progress += slices
+            print(str(int(progress)) + "% done", end="\r")
+            
+
+            try:
+                size = len(tag_vals)
+            except:
+                size = 1
+                tag_vals = [tagListStat[tag_title]]
+                tag_ranks = [tagRankStat[tag_title]]
+
+            tag_vals = numpy.subtract(tag_vals, average)
+
+            weighted_average = numpy.average(tag_vals, weights=tag_ranks)
+
+            #apply the variable log multiple to add more weight to tags that have been more prevalent
+            if(size > 10):
+                multi = math.log(size, 12)
+            else:
+                multi = (1/18) * size + (4/9)
+
+            weighted_average *= multi
+
+            #scale the value so it would rarely go over 1
+            if(weighted_average > 0):
+                weighted_average /= 5
+            else: #scale the value so it would rarely go below -0.5x
+                weighted_average /= 10
+
+
+            tag_means[tag_title] = weighted_average
+
+        return (genre_means, tag_means)
+
+    def calcValues(genre_means, tag_means, recListStat, animeLists):
+        
+        list_rec = {}
+        start = time.time()
+
+        slices = 10/len(animeLists)
+
+        for detList in animeLists: #iterates through each anime list
 
             if(detList['status'] == "PLANNING" or detList['status'] == "CURRENT"):
                 continue
 
+            status = detList['status']
+
             detList = detList['entries']
+            
+            slices2 = slices/len(detList)
 
-            for detAnime in detList: #iterates through anime list
-                
+            for anime in detList: #iterates through each anime and finds the genreValues and tagValues
+
+                anime = anime['media']
+
                 try:
-                    userScore = detAnime['media']['mediaListEntry']['score']
-                except TypeError:
+                    scoreValue = anime['mediaListEntry']['score']
+                except:
                     continue
 
-                scoreValue = detAnime['media']['mediaListEntry']['score'] - 7
+                title = anime['title']['userPreferred']
+                score = anime['averageScore']
 
-                if((scoreValue + 7) == 0):
+                if(score is None or scoreValue is 0):
                     continue
 
-                for genres in detAnime['media']['genres']:
+                #get genre values
+                genreVal = 1
+
+                for genre in anime['genres']:
+                    try:
+                        genreVal *= (1 + genre_means[genre])
+                    except:
+                        pass
+                        #print("%s genre excluded/ignored" % genre)
+
+                #get tag value
+                tagVal = 1
+                for tag in anime['tags']:
+                    tag_title = tag['name']
+                    tag_rank = tag['rank']
+                    try:
+                        tagVal *= (1 + (tag_means[tag_title] * (tag_rank/100)))
+                    except:
+                        pass
+                        #print("%s tag exclused/ignored" % tag_title)
+
+                #get user recommendations
+                recVal = 1
+                if title in recListStat:
+                    for values in recListStat[title]:
+                        #print(values)
+                        recVal *= 1 + ((values[0] * (values[1] - average)/5))
+
+                else:
+                    pass
+                    #print("%s has no user recommendations" % title)
+
+                list_rec[title] = [score, genreVal, tagVal, recVal, scoreValue] #store all the values inside a dict
+
+        return list_rec
+
+    def getGenreTagValues(remove_outliers = False, animeListDet=None, progress_bar_start=0, progress_bar_end=100):
+        global average
+
+        #true_start = time.time()
+        progress = progress_bar_start
+        print(str(int(progress)) + "% done", end="\r")
+
+
+        start = time.time()
+
+        if(animeListDet == None):
+            animeListDet = animeList.getAnimeListDet(sort="FINISHED_ON") #gets the lists with genres, avg score (of others), and tags included. Not included in base list because it takes longer to call so initialization might take longer
+
+        progress += (progress_bar_end - progress_bar_start) * 0.05
+        print(str(int(progress)) + "% done", end="\r")
+
+        #detListPTW = AniListCalls.getAllAnime(True)
+        end = time.time()
+
+        print("execution time to get All Anime: " + str(end-start))
+
+        #creates list of all genres in the list and how often they appear and how the anime are rated from the Completed List
+        genreListStat = {}
+
+        tagListStat = {}
+        tagRankStat = {}
+
+        recListStat = {}
+
+        animeCount = 0
+        totalScore = 0
+
+        start = time.time()
+
+        slices = (progress_bar_end - progress_bar_start) * 0.9/len(animeListDet)
+        
+        for detList in animeListDet: #iterates through each anime list
+
+            if(detList['status'] == "PLANNING" or detList['status'] == "CURRENT"):
+                continue
+
+            status = detList['status']
+
+            detList = detList['entries']
+            animeCount += len(detList)
+            
+            slices2 = slices/len(detList)
+
+            for detAnime in detList: #iterates through each anime and finds the genreValues and tagValues
+
+                try:
+                    scoreValue = detAnime['media']['mediaListEntry']['score']
+                except:
+                    continue
+
+                if((scoreValue) == 0):
+                    animeCount -= 1
+                    continue
+
+                totalScore += scoreValue
+
+
+                for genres in detAnime['media']['genres']: #gets genreValues
 
                     genreValue = scoreValue
 
@@ -162,18 +336,23 @@ class recNeuralNet:
                         genreListStat[genres] = np.append(genreListStat[genres], genreValue)
 
 
-                for tags in detAnime['media']['tags']:
+                for tags in detAnime['media']['tags']: #gets tagValues
 
                     tagRank =  tags['rank']
+                    if(tagRank < 10):
+                        continue
                     tagTitle = tags['name']
                     tagValue = scoreValue
 
                     if tagTitle not in tagListStat:
                         tagListStat[tagTitle] = np.array(tagValue)
+                        tagRankStat[tagTitle] = np.array(tagRank)
                     else:
                         tagListStat[tagTitle] = np.append(tagListStat[tagTitle], tagValue)
+                        tagRankStat[tagTitle] = np.append(tagRankStat[tagTitle], tagRank)
 
-                print(detAnime)
+                rating_values = np.array([])
+                titles = np.array([])
 
                 for recommendation in detAnime['media']['recommendations']['edges']:
                     recommendation = recommendation['node']
@@ -186,22 +365,133 @@ class recNeuralNet:
 
                     if(rating <= 0):
                         continue
-                    if(rating > 10):
-                        rating = 50
 
+                    rating_values = np.append(rating_values, rating)
+                    titles = np.append(titles,title)
 
-                    recValue = scoreValue * (rating ** 0.25)
+                if(len(rating_values) == 0):
+                    continue
 
+                sum = np.sum(rating_values)
+                rating_values = np.reshape(np.divide(rating_values,sum), (-1))
+
+                for i, title in enumerate(titles):
                     if title not in recListStat:
-                        recListStat[title] = np.array(recValue)
+                        recListStat[title] = np.array([[rating_values[i], scoreValue]])
                     else:
-                        recListStat[title] = np.append(recListStat[title], recValue)
+                        recListStat[title] = np.vstack((recListStat[title], [rating_values[i], scoreValue]))
 
-                animeScore = detAnime['media']['averageScore'] #score for the anime across all anilist users
+                progress += slices2
+                print(str(int(progress)) + "% done", end="\r")
 
-            return [genreListStat, tagListStat, recListStat]
+        average = totalScore/animeCount
+        print(animeCount)
+        print(totalScore)
+        print(average)
+
+        end = time.time()
+        iter_time = end-start
 
 
+
+
+        start = time.time()
+        if(remove_outliers):
+            genreListStat = recNeuralNet.removeOutliers(genreListStat)
+            tagListStat,tagRankStat = recNeuralNet.removeOutliers(tagListStat, weights=tagRankStat)
+        end = time.time()
+
+        progress += (progress_bar_end - progress_bar_start) * 0.05
+        print(str(int(progress)) + "% done", end="\r")
+
+        #true_end = time.time()
+
+        print("execution time to iterate through each anime in list: " + str(iter_time))
+        print("execution time to remove outliers: " + str(end-start))
+
+        return [genreListStat, tagListStat, tagRankStat, recListStat]
+
+    def removeOutliers(dict, weights=None, std_devs=1.96):
+        '''removes the outliers in the data (ok well not exactly, but it removes the values outside of the 95% confidence interval (1.96 standard deviations) 
+           to prevent rogue good or bad anime to skew the data too much'''
+
+        total_deleted = 0
+        total_sum = 0
+        total_size = 0
+
+        for val in dict:
+
+            vals = dict[val]
+            
+            try:
+                old_len = len(vals)
+            except:
+                old_len = 1
+                vals = [vals]
+
+            if(old_len < 5):
+                continue
+
+
+            std = np.std(vals)
+
+            if(weights is not None):
+                mean = np.average(vals, weights=weights[val])
+            else:
+                mean = np.mean(vals)
+
+            if(std == 0):
+                continue
+
+
+
+            arr = np.array(vals)
+
+            if(weights is not None):
+                new_arr=np.array([])
+                new_weights = np.array([])
+                deleted = 0
+
+                if(std is 0.0):
+                    continue
+
+                for count, x in enumerate(arr):
+                    if(x > valManip.round(mean - 1.96*std,1) and x < valManip.round(mean + 1.96*std,1)):
+                        new_arr = np.append(new_arr, x)
+                        try:
+                            new_weights = np.append(new_weights, weights[val][count])
+                        except:
+                            traceback.print_exc()
+                            print(count)
+                    else:
+                        deleted += 1
+
+                dict[val] = new_arr
+                weights[val] = new_weights
+
+
+            else:
+                arr = np.delete(arr, np.argwhere(arr < valManip.round(mean - 1.96*std,1)))
+                arr = np.delete(arr, np.argwhere(arr > valManip.round((mean + 1.96 * std),1)))
+                dict[val] = arr
+                
+            vals = dict[val]
+
+            if(weights is not None):
+                mean = np.average(vals, weights=weights[val])
+            else:
+                mean = np.mean(vals)
+
+            total_sum += np.sum(vals)
+            total_size += len(vals)
+
+            deleted = old_len - len(vals)
+            total_deleted += deleted
+
+        if(weights is not None):
+            return (dict, weights)
+        else:
+            return (dict)
 
     def train(self):
         global model, data, goal
@@ -219,7 +509,7 @@ class recNeuralNet:
 
         model.compile(loss='mse', optimizer= 'adam', metrics=["accuracy"])
         
-        model.fit(self.data, self.goal,batch_size= 35, epochs = 10000)
+        model.fit(self.data, self.goal,batch_size= 35, epochs = 100000)
         model.save("nnWeights/recommendations")
 
     def predict(self, genreValue, tagValue, recValue, animeScore):
