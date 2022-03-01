@@ -596,18 +596,31 @@ class recommendations():
             if(score is None):
                 continue
 
+
+            has_genre = True
             #get genre values
             genreVal = 1
             for genre in anime['genres']:
+
+                if(genre not in priority_genres and len(priority_genres) > 0):
+                    has_genre = False
+                    break
+
                 try:
                     genreVal *= (1 + genre_means[genre])
                 except:
                     pass
                     #print("%s genre excluded/ignored" % genre)
 
+            has_tag = True
             #get tag value
             tagVal = 1
             for tag in anime['tags']:
+
+                if(tag not in priority_tags and len(priority_tags) > 0):
+                    has_tag = False
+                    break
+
                 tag_title = tag['name']
                 tag_rank = tag['rank']
                 try:
@@ -615,6 +628,9 @@ class recommendations():
                 except:
                     pass
                     #print("%s tag exclused/ignored" % tag_title)
+
+            if(not has_tag or not has_genre):
+                continue
 
             #get user recommendations
             recVal = 1
@@ -631,6 +647,7 @@ class recommendations():
 
 
             result_value = ((score * genreVal) ** recVal) * (tagVal) #recommendation value calculation for each anime using scores, recVals, genreVals, and tagVals
+            
             try:  
                 result_value = int(result_value)
             except: #print out the information about the anime that caused the result_value to fail
@@ -653,14 +670,17 @@ class recommendations():
         slices = 5/len(detListPTW)
 
         #gets just the title of the anime to return
-        #with open("test.txt", 'w') as file:
-        for x in range(0,len(sortedRec)): #gets the list titles in order
-            #file.write(str(sortedRec[x]) + "\n")
-            print(sortedRec[x])
-            sortedRec[x] = str(sortedRec[x][0])
-            
-            progress += slices
-            print(str(int(progress)) + "% done", end="\r")
+        with open("test.txt", 'w') as file:
+            for x in range(0,len(sortedRec)): #gets the list titles in order
+                try:
+                    file.write(str(sortedRec[x]) + "\n")
+                except:
+                    pass
+                print(sortedRec[x])
+                sortedRec[x] = str(sortedRec[x][0])
+                
+                progress += slices
+                print(str(int(progress)) + "% done", end="\r")
             
             
 
@@ -747,6 +767,8 @@ class recommendations():
                     print("------TAGS---------")
                     for tag in tag_list:
                         print(tag)
+
+                    return
 
                 elif(x == "-g=" or x == "-genre="):
                     next = "genre"
