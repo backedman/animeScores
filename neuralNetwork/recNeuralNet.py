@@ -493,7 +493,7 @@ class recNeuralNet:
         else:
             return (dict)
 
-    def train(self):
+    def train(self, cont=True):
         global model, data, goal
 
         self.data = np.array(self.data)
@@ -507,10 +507,37 @@ class recNeuralNet:
 
         opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-        model.compile(loss='mse', optimizer= 'adam', metrics=["accuracy"])
-        
-        model.fit(self.data, self.goal,batch_size= 35, epochs = 100000)
-        model.save("nnWeights/recommendations")
+        #where the weights are stored
+        checkpoint_path = "nnWeights/recommendations/cp.ckpt"
+        checkpoint_dir = os.path.dirname(checkpoint_path)
+
+        batch_size = 32
+
+        #data saved every 100 iterations
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                 save_weights_only=True,
+                                                 save_freq= 100*batch_size,
+                                                 verbose=1
+                                                 )
+
+        #if weights were saved previously, they are loaded
+        if(os.path.exists(checkpoint_dir) and cont == True):
+            model.load_weights(checkpoint_path)
+        elif(cont == False):
+            model = keras.Sequential(
+            [
+            layers.Dense(40, name="layer1", activation= "relu"),
+            layers.Dense(80, name="layer2", activation= "relu"),
+            layers.Dense(10, name="layer3", activation= "relu"),
+            layers.Dense(1, name = "layer4")
+            ]
+        )#compiles model
+        model.compile(loss='mse', optimizer= 'adam')
+
+
+
+        #pretty much has neural network try to link stats with real score
+        model.fit(self.data, self.goal, epochs = 100, callbacks = [cp_callback])
 
     def predict(self, genreValue, tagValue, recValue, animeScore):
         global model
