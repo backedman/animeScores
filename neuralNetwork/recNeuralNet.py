@@ -17,8 +17,11 @@ class recNeuralNet:
     def __init__(self):
         global model, newModel
 
+        checkpoint_path = "nnWeights/recommendations/cp.ckpt"
+        checkpoint_dir = os.path.dirname(checkpoint_path) 
+
         try: #loads saved model. If it does not exist or is corrupted or something, then a new one is created.
-            model = keras.models.load_model("nnWeights/recommendations")
+            model = model.load_weights(checkpoint_path)
             newModel = False
 
         except:
@@ -26,7 +29,6 @@ class recNeuralNet:
             model = keras.Sequential(
                         [
                         layers.Dense(80, name="layer1", activation="relu"),
-                        layers.Dense(80, name="layer1", activation= "relu"),
                         layers.Dense(160, name="layer2", activation= "relu"),
                         layers.Dense(60, name="layer3", activation= "relu"),
                         layers.Dense(40, name = "layer4", activation = "relu"),
@@ -504,12 +506,9 @@ class recNeuralNet:
         print(self.data)
         print(self.goal)
 
-
-        opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-
-        #where the weights are stored
+                #where the weights are stored
         checkpoint_path = "nnWeights/recommendations/cp.ckpt"
-        checkpoint_dir = os.path.dirname(checkpoint_path)
+        checkpoint_dir = os.path.dirname(checkpoint_path) 
 
         batch_size = 32
 
