@@ -101,7 +101,7 @@ class animeFile:
         self.writeToFile()
         self.updateStats()
 
-        animeList.updateFullAnime(animeName=self.animeName, status=self.status)
+        #animeList.updateFullAnime(animeName=self.animeName, status=self.status)
 
         
 
