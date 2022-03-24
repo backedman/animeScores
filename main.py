@@ -309,16 +309,16 @@ def main():
                 animeList.updateFullAnime(animeListType="ALL")
                 print("execution time: " + str(time.time() - start))\
 
-            # exits program if user chooses "X"
-            elif (ans == "x" or ans == "X"):
-                    break
+        # exits program if user chooses "X"
+        elif (ans == "x" or ans == "X"):
+                break
 
-            # chooses corresponding animeName if user chooses a number between 1 and 9
-            elif (int(ans) < 10 and int(ans) > 0):
-                listIndex = int(ans) - 1 + (page - 1) * 9
-                animeName = titleList[listIndex]
+        # chooses corresponding animeName if user chooses a number between 1 and 9
+        elif (int(ans) < 10 and int(ans) > 0):
+            listIndex = int(ans) - 1 + (page - 1) * 9
+            animeName = titleList[listIndex]
 
-                aniShow = animeFile(animeName, status)
+            aniShow = animeFile(animeName, status)
 
 """         elif(ans == 7): #score predictor based on recommendations neural network
                  
@@ -398,6 +398,10 @@ def recommendations_help():
       -list                          Print out a list of all the available genres and tags
       -glist                         Print out a list of all the available genres
       -tlist                         Print out a list of all the available tags
+
+      -exp                           Uses an experimental version of the recommendation algorithm which uses a
+                                     Neural Network to recommend anime (will take a few minutes to train the first
+                                     time this is run)
 
     *Note: Multiple genres and tags can be used with one option if seperated by a comma
 

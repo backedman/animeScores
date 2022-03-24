@@ -12,21 +12,15 @@ class recNeuralNet:
     data = []
     goal = []
     detListTotal = []
-    newModel = False
+    new_model = False
 
     def __init__(self):
-        global model, newModel
+        global model, new_model
 
         checkpoint_path = "nnWeights/recommendations/cp.ckpt"
-        checkpoint_dir = os.path.dirname(checkpoint_path) 
+        checkpoint_dir = os.path.dirname(checkpoint_path)
 
-        try: #loads saved model. If it does not exist or is corrupted or something, then a new one is created.
-            model = model.load_weights(checkpoint_path)
-            newModel = False
-
-        except:
-            #creates the neural network with the layers
-            model = keras.Sequential(
+        model = keras.Sequential(
                         [
                         layers.Dense(80, name="layer1", activation="relu"),
                         layers.Dense(160, name="layer2", activation= "relu"),
@@ -35,8 +29,12 @@ class recNeuralNet:
                         layers.Dense(1, name = "layer5")
                         ]
                     )
-            newModel = True
-       
+
+        if(os.path.exists(checkpoint_dir)): #loads saved weights. If it does not exist, then a new one is created.
+            model.load_weights(checkpoint_path)
+            new_model = False
+        else:
+            new_model = True
 
         #model = keras.Model(inputs = inputs, outputs = output)
 
@@ -70,7 +68,7 @@ class recNeuralNet:
         #process the retrived values for each anime to get genre, tag, and rec values for each anime (as well as user score)
         genre_means, tag_means = recNeuralNet.calcMeans(genreListStat, tagListStat, tagRankStat)
 
-        print(genre_means)
+        #print(genre_means)
 
         #get genre, tag, and rec values for each anime
         values = recNeuralNet.calcValues(genre_means, tag_means, recListStat, userLists)
@@ -83,7 +81,7 @@ class recNeuralNet:
             tagVal = data[2]
             recVal = data[3]
             scoreValue = data[4]
-            print(data)
+            #print(data)
 
             self.add(genreVal, tagVal, recVal, score, scoreValue)
 
@@ -93,13 +91,12 @@ class recNeuralNet:
                 #get the genre_means, tag_means, and the rec_values from the user
 
         start = time.time()
-        print(average)
 
         genre_means = {}
         tag_means = {}
 
         progress = 30
-        print(str(int(progress)) + "% done", end="\r")
+        #print(str(int(progress)) + "% done", end="\r")
 
         slices = 10/len(genreListStat)
         for genre_title in genreListStat:
@@ -135,7 +132,7 @@ class recNeuralNet:
                 weighted_count += curr
 
                 progress += slices2
-                print(str(int(progress)) + "% done", end="\r")
+                #print(str(int(progress)) + "% done", end="\r")
                 
                 
                 if(curr > 1):
@@ -164,7 +161,7 @@ class recNeuralNet:
             tag_ranks = tagRankStat[tag_title]
 
             progress += slices
-            print(str(int(progress)) + "% done", end="\r")
+            #print(str(int(progress)) + "% done", end="\r")
             
 
             try:
@@ -271,7 +268,7 @@ class recNeuralNet:
 
         #true_start = time.time()
         progress = progress_bar_start
-        print(str(int(progress)) + "% done", end="\r")
+        #print(str(int(progress)) + "% done", end="\r")
 
 
         start = time.time()
@@ -318,13 +315,15 @@ class recNeuralNet:
 
                 try:
                     scoreValue = detAnime['media']['mediaListEntry']['score']
+
                 except:
+                    animeCount -= 1
                     continue
 
                 if((scoreValue) == 0):
                     animeCount -= 1
                     continue
-
+                
                 totalScore += scoreValue
 
 
@@ -384,12 +383,12 @@ class recNeuralNet:
                         recListStat[title] = np.vstack((recListStat[title], [rating_values[i], scoreValue]))
 
                 progress += slices2
-                print(str(int(progress)) + "% done", end="\r")
+                #print(str(int(progress)) + "% done", end="\r")
 
         average = totalScore/animeCount
-        print(animeCount)
-        print(totalScore)
-        print(average)
+        #print("animeCount " + str(animeCount))
+        #print("totalScore " + str(totalScore))
+        #print("average " + str(average))
 
         end = time.time()
         iter_time = end-start
@@ -404,12 +403,12 @@ class recNeuralNet:
         end = time.time()
 
         progress += (progress_bar_end - progress_bar_start) * 0.05
-        print(str(int(progress)) + "% done", end="\r")
+        #print(str(int(progress)) + "% done", end="\r")
 
         #true_end = time.time()
 
-        print("execution time to iterate through each anime in list: " + str(iter_time))
-        print("execution time to remove outliers: " + str(end-start))
+        #print("execution time to iterate through each anime in list: " + str(iter_time))
+        #print("execution time to remove outliers: " + str(end-start))
 
         return [genreListStat, tagListStat, tagRankStat, recListStat]
 
@@ -503,8 +502,8 @@ class recNeuralNet:
         self.goal = np.array(self.goal)
         self.goal = np.reshape(self.goal, (-1,1))
 
-        print(self.data)
-        print(self.goal)
+        #print(self.data)
+        #print(self.goal)
 
                 #where the weights are stored
         checkpoint_path = "nnWeights/recommendations/cp.ckpt"
@@ -536,7 +535,7 @@ class recNeuralNet:
 
 
         #pretty much has neural network try to link stats with real score
-        model.fit(self.data, self.goal, epochs = 100, callbacks = [cp_callback])
+        model.fit(self.data, self.goal, epochs = 20000, callbacks = [cp_callback])
 
     def predict(self, genreValue, tagValue, recValue, animeScore):
         global model
@@ -556,7 +555,7 @@ class recNeuralNet:
 
         animeInfo = np.reshape(animeInfo, (-1,4))
 
-        print(animeInfo)
+        #print(animeInfo)
 
         animeValues = model.predict(animeInfo)
 
@@ -571,7 +570,7 @@ class recNeuralNet:
         print(diff)
 
     def isNewModel(self): #returns if a new model was created or not when object was created
-        global newModel
+        global new_model
 
-        return newModel
+        return new_model
         
