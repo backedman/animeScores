@@ -1089,9 +1089,9 @@ class recommendations():
                 elif(x == "-rt=" or x == "-restricttag="):
                     next = "res_tag"
                 elif(x == "-exp"):
-                    next = "exp"
+                    legacy = False
 
-                if(next == "genre"):
+                elif(next == "genre"):
                     genres += (x.split(","))
                     next = ""
                 elif(next == "res_genre"):
@@ -1104,7 +1104,6 @@ class recommendations():
                     res_tags += (x.split(","))
                     next = ""
                 elif(next == "exp"):
-                    legacy = False
                     next = ""
         else:
             return
@@ -1117,7 +1116,7 @@ class recommendations():
 
         for genre in genres:
             if(not genre in genre_list):
-                genre.remove(genre)
+                genres.remove(genre)
                 print(genre + " IS NOT A VALID GENRE")
 
         for tag in tags:
