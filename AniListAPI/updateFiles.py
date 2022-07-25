@@ -100,7 +100,7 @@ class updateFiles():
                     fileName = valManip.makeSafe(animeName)
 
                     oPath = aniFileDir
-                    nPath = valManip.getPath(aniListStatus) + fileName + ".txt"
+                    nPath = valManip.getPath(aniListStatus) + aniFileName
 
                     os.rename(oPath, nPath) #moves file to correct directory
 
