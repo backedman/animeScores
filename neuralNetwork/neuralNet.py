@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 class neuralNet(object):
     """description of class"""
     
-     
+     #comment
 
     def initialize():
         global model
