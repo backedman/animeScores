@@ -136,7 +136,7 @@ class config(object):
 
                 file.seek(0)
 
-                input("Press Enter to Exit")
+                #input("Press Enter to Exit")
 
                 sys.exit()
 
