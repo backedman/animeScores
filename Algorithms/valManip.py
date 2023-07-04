@@ -78,3 +78,11 @@ class valManip(object):
             return math.pow(value,power)
         else:
             return -math.pow(abs(value),power)
+        
+    def logKeepNeg(value, base=10):
+        if(value == 0):
+            raise ValueError("value cannot be 0")
+        elif(value > 0):
+            return math.log(value, base)
+        elif(value < 0):
+            return -math.log(-value, base)

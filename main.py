@@ -117,7 +117,7 @@ def main():
                 result = recommendations.process_input(ans)
                 
                 if(result is not None):
-                    titleList = result
+                    titleList = result.to_list()
                     break
 
             
@@ -399,7 +399,7 @@ def recommendations_help():
       -glist                         Print out a list of all the available genres
       -tlist                         Print out a list of all the available tags
 
-      -exp                           Uses an experimental version of the recommendation algorithm which uses a
+      -type                           Uses an experimental version of the recommendation algorithm which uses a
                                      Neural Network to recommend anime (will take a few minutes to train the first
                                      time this is run)
 

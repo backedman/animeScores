@@ -1,5 +1,8 @@
-
+Dockerfile
+docker-compose.yml
+docker-compose.debug.yml
 *.txt
 nnWeights
 Data
 .vscode/launch.json
+*.ipynb

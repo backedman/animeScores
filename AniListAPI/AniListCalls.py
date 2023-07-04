@@ -54,7 +54,7 @@ class AniListCalls():
         return animeData
 
     def retAnimeListDet(user="", sort="MEDIA_ID"):
-        
+
         if(user == ""):
             userName = AniListAccess.getUserName()
         else:
@@ -151,6 +151,7 @@ class AniListCalls():
         }
         
             #returns data of anime
+        
         animeData = (AniListAccess.getData(query, variables))['data']['Media']
         return animeData
 
@@ -221,7 +222,6 @@ class AniListCalls():
         item = 0
         animeData = []
         for year in range(1940, date.today().year + 1): #accesses all anime from 1940 to present day
-            print(year)
             for page in range(1,13): #12 pages for each year (600 anime per year)
                 query += (''' item%d: Page(page: %d) { 
                                 media(type: ANIME, seasonYear: %d){ 
@@ -245,11 +245,16 @@ class AniListCalls():
                                         rank
                                     }
                                     genres
+
+                                    popularity
                                     averageScore
+
                                     mediaListEntry {
                                         status
                                     }
                                 }
+
+                                
                             }
 
                            ''' % (item, page, year))
