@@ -26,7 +26,7 @@ class recommendations():
 
         # Pre-calculate the values of anime2genretag and anime2_popularity_avg_score_recommendations
         anime2genretag = anime2[[genretag for genretag in anime2.index if genretag not in ['animeName', 'popularity', 'user_score', 'recommendations']]]
-        anime2_popularity_avg_score_recommendations = (anime2['popularity'] * anime2['average_score'] * anime2['recommendations']) ** 0.5
+        anime2_popularity_avg_score_recommendations = (anime2['popularity'] ** 0.25) * anime2['average_score'] * (anime2['recommendations'])
 
         # Pre-calculate the values of anime1genretag for each anime in dataset1
         dataset1genretag = dataset1[[genretag for genretag in dataset1.columns if genretag not in ['animeName', 'popularity', 'user_score', 'recommendations']]]
